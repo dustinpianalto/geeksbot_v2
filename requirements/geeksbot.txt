@@ -1,0 +1,8 @@
+discord.py
+aiohttp<3.6.0
+aiofiles
+python-dateutil
+psutil
+pytz
+async_timeout
+cached_property
