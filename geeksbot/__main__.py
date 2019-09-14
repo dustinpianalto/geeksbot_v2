@@ -30,34 +30,34 @@ logger.info('Starting Imports')
 
 start = datetime.utcnow()
 # noinspection PyPackageRequirements
-import discord
+import discord  # noqa: E402
 logger.info('Discord.py Imported')
 # noinspection PyPackageRequirements
-from discord.ext import commands
+from discord.ext import commands  # noqa: E402
 logger.info('commands Imported')
 # noinspection PyPackageRequirements
-from discord.ext.commands.view import StringView
+from discord.ext.commands.view import StringView  # noqa: E402
 logger.info('StringView Imported')
 # noinspection PyPackageRequirements
-from discord.ext.commands.context import Context
+from discord.ext.commands.context import Context  # noqa: E402
 logger.info('Context Imported')
 logger.info(f'Discord.py Import Complete - Took {(datetime.utcnow() - start).total_seconds()} seconds')
 # noinspection PyRedeclaration
 start = datetime.utcnow()
-from concurrent import futures
+from concurrent import futures  # noqa: E402
 logger.info('Concurrent futures Imported')
-from multiprocessing import Pool
+from multiprocessing import Pool  # noqa: E402
 logger.info('Multiprocesing Pool Imported')
 logger.info(f'Process Libs Import Complete - Took {(datetime.utcnow() - start).total_seconds()} seconds')
 # noinspection PyRedeclaration
 start = datetime.utcnow()
-import re
+import re  # noqa: E402
 logger.info('re Imported')
-from typing import Dict
+from typing import Dict  # noqa: E402
 logger.info('Typing Dict Imported')
-import json
+import json  # noqa: E402
 logger.info('JSON Imported')
-import aiohttp
+import aiohttp  # noqa: E402
 logger.info('aiohttp Imported')
 logger.info(f'Misc Libs Import Complete - Took {(datetime.utcnow() - start).total_seconds()} seconds')
 # noinspection PyRedeclaration
