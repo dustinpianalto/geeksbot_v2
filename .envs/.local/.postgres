@@ -1,7 +1,0 @@
-# PostgreSQL
-# ------------------------------------------------------------------------------
-POSTGRES_HOST=postgres
-POSTGRES_PORT=5432
-POSTGRES_DB=geeksbot_v2
-POSTGRES_USER=eJujPHAXiaktuvRsJQlNbdhzHbkEGdgs
-POSTGRES_PASSWORD=hrjQlc8cfRVa0pgeJ1OWcsh4ZbRpTS1bJbMP2Atx3zKivMDJWKO71Dly0jFmRUWq

@@ -53,8 +53,6 @@ logger.info(f'Process Libs Import Complete - Took {(datetime.utcnow() - start).t
 start = datetime.utcnow()
 import re  # noqa: E402
 logger.info('re Imported')
-from typing import Dict  # noqa: E402
-logger.info('Typing Dict Imported')
 import json  # noqa: E402
 logger.info('JSON Imported')
 import aiohttp  # noqa: E402
@@ -98,7 +96,7 @@ class Geeksbot(commands.Bot):
 
     async def unload_ext(self, mod):
         self.unload_extension(f'geeksbot.{self.extension_dir}.{mod}')
-        logger.info(f'Extension Loaded: {mod}')
+        logger.info(f'Extension Unloaded: {mod}')
 
     def load_default_extensions(self):
         for load_item in self.bot_config['load_list']:

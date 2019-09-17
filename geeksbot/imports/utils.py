@@ -3,6 +3,69 @@ import asyncio
 import typing
 
 
+# noinspection PyDefaultArgument
+def to_list_of_str(items, out: list = list(), level=1, recurse=0):
+    # noinspection PyShadowingNames
+    def rec_loop(item, key, out, level):
+        quote = '"'
+        if type(item) == list:
+            out.append(f'{"    "*level}{quote+key+quote+": " if key else ""}[')
+            new_level = level + 1
+            out = to_list_of_str(item, out, new_level, 1)
+            out.append(f'{"    "*level}]')
+        elif type(item) == dict:
+            out.append(f'{"    "*level}{quote+key+quote+": " if key else ""}{{')
+            new_level = level + 1
+            out = to_list_of_str(item, out, new_level, 1)
+            out.append(f'{"    "*level}}}')
+        else:
+            out.append(f'{"    "*level}{quote+key+quote+": " if key else ""}{repr(item)},')
+
+    if type(items) == list:
+        if not recurse:
+            out = list()
+            out.append('[')
+        for item in items:
+            rec_loop(item, None, out, level)
+        if not recurse:
+            out.append(']')
+    elif type(items) == dict:
+        if not recurse:
+            out = list()
+            out.append('{')
+        for key in items:
+            rec_loop(items[key], key, out, level)
+        if not recurse:
+            out.append('}')
+
+    return out
+
+
+def format_output(text):
+    if type(text) == list:
+        text = to_list_of_str(text)
+    elif type(text) == dict:
+        text = to_list_of_str(text)
+    return text
+
+
+async def run_command(args):
+    # Create subprocess
+    process = await asyncio.create_subprocess_shell(
+        f'time -f "Process took %e seconds (%U user | %S system) and used %P of the CPU" {args}',
+        # stdout must a pipe to be accessible as process.stdout
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE)
+    # Wait for the subprocess to finish
+    stdout, stderr = await process.communicate()
+    # Return stdout
+    if stderr and stderr.strip() != '':
+        output = f'{stdout.decode().strip()}\n{stderr.decode().strip()}'
+    else:
+        output = stdout.decode().strip()
+    return output
+
+
 # noinspection PyShadowingNames
 class Paginator:
     def __init__(self,
@@ -44,12 +107,12 @@ class Paginator:
         self._embed_url = None
         self._bot = bot
 
-    def set_embed_meta(self, title: str=None,
-                       description: str=None,
-                       color: discord.Colour=None,
-                       thumbnail: str=None,
-                       footer: str='',
-                       url: str=None):
+    def set_embed_meta(self, title: str = None,
+                       description: str = None,
+                       color: discord.Colour = None,
+                       thumbnail: str = None,
+                       footer: str = '',
+                       url: str = None):
         if title and len(title) > self._max_field_name:
             raise RuntimeError('Provided Title is too long')
         else:
@@ -111,7 +174,7 @@ class Paginator:
                 _field_name = name
                 _field_value = self._prefix
 
-            def close_field(next_name: str=None):
+            def close_field(next_name: str = None):
                 nonlocal _field_name, _field_value, _fields
                 _field_value += self._suffix
                 if _field_value != self._prefix + self._suffix:
@@ -188,10 +251,10 @@ class Paginator:
         # noinspection PyProtectedMember
         return self.__class__ == other.__class__ and self._parts == other._parts
 
-    def add_page_break(self, *, to_beginning: bool=False) -> None:
+    def add_page_break(self, *, to_beginning: bool = False) -> None:
         self.add(self._page_break, to_beginning=to_beginning)
 
-    def add(self, item: typing.Any, *, to_beginning: bool=False, keep_intact: bool=False, truncate=False) -> None:
+    def add(self, item: typing.Any, *, to_beginning: bool = False, keep_intact: bool = False, truncate=False) -> None:
         item = str(item)
         i = 0
         if not keep_intact and not item == self._page_break:

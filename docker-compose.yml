@@ -36,8 +36,6 @@ services:
       - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
       - REDIS_URL=redis://${REDIS_HOST}:${REDIS_PORT}/${REDIS_DB}
     volumes:
-      - ${PWD}/config:/code/config
-      - ${PWD}/geeksbot_web:/code/geeksbot_web
       - ${PWD}/geeksbot_v2:/code/geeksbot_v2
   geeksbot:
     build:
@@ -49,6 +47,8 @@ services:
       - redis
       - base
       - web
+    links:
+      - web:geeksbot.app
     volumes:
       - ${PWD}/geeksbot:/code/geeksbot
       - ~/.ssh/id_rsa:/root/.ssh/id_rsa

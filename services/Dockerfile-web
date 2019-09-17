@@ -20,17 +20,18 @@ COPY ./services/web/supervisord.conf /etc/supervisor/supervisord.conf
 COPY ./services/web/supervisor_geeksbot.conf /etc/supervisor/conf.d/geeksbot.conf
 COPY ./ssl_certs/geeksbot_app/geeksbot_app_cert_chain.crt /etc/ssl/geeksbot_app_cert_chain.crt
 COPY ./ssl_certs/geeksbot_app/geeksbot.app.key /etc/ssl/geeksbot.app.key
+COPY ./.env /code/
 
 RUN rm -rf /tmp/*
 
 RUN mkdir -p /tmp/logs/nginx
 RUN mkdir -p /tmp/logs/geeksbot
 
-COPY manage.py .
-copy entrypoint .
-RUN sed -i 's/\r$//g' /code/entrypoint
-RUN chmod +x /code/entrypoint
+WORKDIR /code/geeksbot_v2
+
+# RUN sed -i 's/\r$//g' ./entrypoint
+# RUN chmod +x ./entrypoint
 
 EXPOSE 80 8000 443
 
-ENTRYPOINT [ "/code/entrypoint" ]
+ENTRYPOINT [ "./entrypoint" ]
