@@ -156,7 +156,7 @@ class Paginator:
 
         if not self._embed:
             for part in [str(p) for p in self._parts]:
-                if part == self._page_break:
+                if part.startswith(self._page_break):
                     close_page()
 
                 new_chars = len(_page) + len(part)
@@ -185,9 +185,8 @@ class Paginator:
             open_field('\uFFF0')
 
             for part in [str(p) for p in self._parts]:
-                if part.strip() == self._page_break:
+                if part.strip().startswith(self._page_break):
                     close_page()
-                    continue
                 elif part == self._field_break:
                     if len(_fields) + 1 < 25:
                         close_field(next_name='\uFFF0')

@@ -1,19 +1,19 @@
-from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse
 from django.views.generic import DetailView, RedirectView, UpdateView
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
-from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
 
 
-from geeksbot_v2.users.serializers import UserSerializer
-from geeksbot_v2.users.serializers import UserLogSerializer
-from geeksbot_v2.users.models import UserLog
+from .models import UserLog
 from geeksbot_v2.utils.api_utils import PaginatedAPIView
-
-User = get_user_model()
+from .models import User
+from .utils import create_error_response
+from .utils import create_success_response
+from .utils import create_log_success_response
 
 
 class UserDetailView(LoginRequiredMixin, DetailView):
@@ -24,6 +24,7 @@ class UserDetailView(LoginRequiredMixin, DetailView):
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
+
         context = self.get_context_data(object=self.object, user=request.user)
         return self.render_to_response(context)
 
@@ -66,44 +67,72 @@ user_redirect_view = UserRedirectView.as_view()
 
 
 class UsersAPI(PaginatedAPIView):
-    def get(self, request, guild, format=None):
-        users = User.objects.filter(guilds__id=guild)
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, guild=None, format=None):
+        if guild:
+            users = User.objects.filter(guilds__id=guild)
+        else:
+            users = User.objects.all()
         page = self.paginate_queryset(users)
         if page is not None:
-            serialized_users = UserSerializer(users, many=True)
-            return self.get_paginated_response(serialized_users.data)
+            return create_success_response(page, status.HTTP_200_OK, many=True)
 
-        serialized_users = UserSerializer(users, many=True)
-        return Response(serialized_users.data)
+        return create_success_response(users, status.HTTP_200_OK, many=True)
+
+    def post(self, request, format=None):
+        data = dict(request.data)
+        return User.add_new_user(data)
 
 
 class UserDetail(APIView):
-    def get(self, request, guild, id, format=None):
-        user = User.objects.filter(guilds__id=guild).get(id=id)
-        return Response(UserSerializer(user).data)
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, id, format=None):
+        user = User.get_user_by_id(id)
+        if not isinstance(user, User):
+            return create_error_response("User Does not Exist",
+                                         status=status.HTTP_404_NOT_FOUND)
+        return create_success_response(user,
+                                       status=status.HTTP_200_OK)
+
+    def put(self, request, id, format=None):
+        user = User.get_user_by_id(id)
+        if isinstance(user, User):
+            data = dict(request.data)
+            return user.update_user(data)
+        else:
+            return create_error_response("User Does Not Exist",
+                                         status=status.HTTP_404_NOT_FOUND)
 
 
 class UserLogList(PaginatedAPIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, user, action=None, format=None):
         if action:
-            user_logs = (
-                UserLog.objects.filter(user=user)
-                .filter(action=action)
-                .order_by("-time")
-            )
+            user_logs = UserLog.get_logs_by_user_action(user, action)
         else:
-            user_logs = UserLog.objects.filter(user=user).order_by("-time")
+            user_logs = UserLog.get_logs_by_user(user)
 
         page = self.paginate_queryset(user_logs)
         if page is not None:
-            serialized_logs = UserLogSerializer(page, many=True)
-            return self.get_paginated_response(serialized_logs.data)
+            return create_log_success_response(page, status.HTTP_200_OK, many=True)
 
-        serialized_logs = UserLogSerializer(user_logs, many=True)
-        return Response(serialized_logs.data)
+        return create_log_success_response(user_logs, status.HTTP_200_OK, many=True)
+
+    def post(self, request, user, format=None):
+        data = dict(request.data)
+        return UserLog.add_new_log(user, data)
 
 
 class UserLogDetail(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, id, format=None):
-        user_log = UserLog.objects.get(id=id)
-        return Response(UserLogSerializer(user_log).data)
+        user_log = UserLog.get_log_by_id(id)
+        if isinstance(user_log, UserLog):
+            return create_log_success_response(user_log, status.HTTP_200_OK, many=False)
+        else:
+            return create_error_response("Log Does Not Exist",
+                                         status=status.HTTP_404_NOT_FOUND)

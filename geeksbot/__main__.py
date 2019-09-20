@@ -78,6 +78,7 @@ class Geeksbot(commands.Bot):
         self.config_dir = 'geeksbot/config/'
         self.config_file = 'bot_config.json'
         self.extension_dir = 'exts'
+        self.api_token = os.environ['API_TOKEN']
         self.aio_session = aiohttp.ClientSession(loop=self.loop)
         with open(f'{self.config_dir}{self.config_file}') as f:
             self.bot_config = json.load(f)
@@ -89,6 +90,16 @@ class Geeksbot(commands.Bot):
         self.geo_api = '2d4e419c2be04c8abe91cb5dd1548c72'
         self.git_url = 'https://github.com/dustinpianalto/geeksbot_v2'
         self.load_default_extensions()
+
+        self.book_emojis = {
+                            'unlock': '🔓',
+                            'start': '⏮',
+                            'back': '◀',
+                            'hash': '#\N{COMBINING ENCLOSING KEYCAP}',
+                            'forward': '▶',
+                            'end': '⏭',
+                            'close': '🇽',
+                            }
 
     async def load_ext(self, mod):
         self.load_extension(f'geeksbot.{self.extension_dir}.{mod}')

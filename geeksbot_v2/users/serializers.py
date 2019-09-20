@@ -7,7 +7,22 @@ from geeksbot_v2.users.models import UserLog
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = "__all__"
+        fields = [
+            'id',
+            'username',
+            'name',
+            'discord_username',
+            'previous_discord_usernames',
+            'discriminator',
+            'previous_discriminators',
+            'guilds',
+            'steam_id',
+            'animated',
+            'avatar',
+            'bot',
+            'banned',
+            'logging_enabled'
+        ]
 
 
 class UserLogSerializer(serializers.ModelSerializer):

@@ -64,9 +64,9 @@ class Exec(commands.Cog):
                 ret = await func()
         except Exception:
             pag.add(stdout.getvalue())
-            pag.add(traceback.format_exc())
-            for page in pag.pages():
-                await ctx.send(page)
+            pag.add(f'\n\uFFF8{traceback.format_exc()}')
+            book = Book(pag, (None, ctx.channel, ctx.bot, ctx.message))
+            await book.create_book()
         else:
             value = stdout.getvalue()
             # noinspection PyBroadException
@@ -76,10 +76,10 @@ class Exec(commands.Cog):
                 pass
             value = format_output(value)
             pag.add(value)
-            pag.add(f'\nReturned: {ret}')
+            pag.add(f'\n\uFFF8Returned: {ret}')
             self._last_result = ret
-            for page in pag.pages():
-                await ctx.send(page)
+            book = Book(pag, (None, ctx.channel, ctx.bot, ctx.message))
+            await book.create_book()
 
     @commands.command(hidden=True)
     async def repl(self, ctx):
@@ -161,8 +161,8 @@ class Exec(commands.Cog):
             body = self.cleanup_code(body)
             pag = Paginator(self.bot)
             pag.add(await asyncio.wait_for(self.bot.loop.create_task(run_command(body)), 120))
-            for page in pag.pages():
-                await ctx.send(page)
+            book = Book(pag, (None, ctx.channel, ctx.bot, ctx.message))
+            await book.create_book()
             await ctx.message.add_reaction('✅')
         except asyncio.TimeoutError:
             await ctx.send(f"Command did not complete in the time allowed.")

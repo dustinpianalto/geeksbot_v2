@@ -1,13 +1,12 @@
-import os
-
-from django.shortcuts import render
-from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from django.core.exceptions import ObjectDoesNotExist
 
 from geeksbot_v2.utils.api_utils import PaginatedAPIView
 from .models import Guild
-from .serializers import GuildSerializer
+from .utils import create_error_response
+from .utils import create_success_response
 
 # Create your views here.
 
@@ -15,37 +14,56 @@ from .serializers import GuildSerializer
 
 
 class GuildsAPI(PaginatedAPIView):
-    def get(self, request, format=None):
-        users = Guild.objects.all()
-        page = self.paginate_queryset(users)
-        if page is not None:
-            serialized_users = GuildSerializer(users, many=True)
-            return self.get_paginated_response(serialized_users.data)
+    permission_classes = [IsAuthenticated]
 
-        serialized_users = GuildSerializer(users, many=True)
-        return Response(serialized_users.data)
+    def get(self, request, format=None):
+        guilds = Guild.objects.all()
+        page = self.paginate_queryset(guilds)
+        if page is not None:
+            return create_success_response(page, status.HTTP_200_OK, many=True)
+
+        return create_success_response(guilds, status.HTTP_200_OK, many=True)
 
     def post(self, request, format=None):
         data = dict(request.data)
-        print(data)
-        id = data.get('id')
-        default_channel = data.get('default_channel')
-        if not (id and default_channel):
-            return Response({'msg': 'id and default_channel are required'}, status=status.HTTP_400_BAD_REQUEST)
+        return Guild.create_guild(data)
 
-        admin_chat = data.get('admin_chat')
-        new_patron_message = data.get('new_patron_message')
-        default_prefix = os.environ['DISCORD_DEFAULT_PREFIX']
-        prefixes = data.get('prefixes', [default_prefix, ])
-        print(prefixes)
 
-        guild = Guild(
-            id=id[0] if isinstance(id, list) else id,
-            default_channel=default_channel[0] if isinstance(default_channel, list) else default_channel,
-            prefixes=prefixes,
-            admin_chat=admin_chat[0] if isinstance(admin_chat, list) else admin_chat,
-            new_patron_message=new_patron_message[0] if isinstance(new_patron_message, list) else new_patron_message
-        )
-        guild.save()
+class GuildDetail(APIView):
+    permission_classes = [IsAuthenticated]
 
-        return Response(GuildSerializer(guild).data, status=status.HTTP_201_CREATED)
+    def get(self, request, id, format=None):
+        try:
+            guild = Guild.objects.get(id=id)
+        except ObjectDoesNotExist:
+            return create_error_response("Guild Does not Exist",
+                                         status=status.HTTP_404_NOT_FOUND)
+        else:
+            return create_success_response(guild,
+                                           status=status.HTTP_200_OK)
+
+    def put(self, request, id, format=None):
+        guild = Guild.get_guild_by_id(id)
+
+        if guild:
+            data = dict(request.data)
+            guild = guild.update_guild(data)
+            return create_success_response(guild,
+                                           status=status.HTTP_202_ACCEPTED)
+        else:
+            return create_error_response('Guild Does Not Exist',
+                                         status=status.HTTP_404_NOT_FOUND)
+
+    def delete(self, request, id, format=None):
+        guild = Guild.get_guild_by_id(id)
+
+        if guild:
+            # data = dict(request.data)
+            # TODO Add a check to verify user is allowed to delete...
+            # Possibly in object permissions...
+            guild.delete()
+            return create_success_response(guild,
+                                           status=status.HTTP_200_OK)
+        else:
+            return create_error_response('Guild Does Not Exist',
+                                         status=status.HTTP_404_NOT_FOUND)
