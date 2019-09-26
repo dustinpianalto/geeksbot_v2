@@ -19,20 +19,20 @@ from .utils import create_comment_success_response
 
 class Message(models.Model):
     id = models.CharField(max_length=30, primary_key=True)
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    author = models.ForeignKey(User, related_name="+", on_delete=models.CASCADE)
     guild = models.ForeignKey(Guild, on_delete=models.CASCADE)
-    channel = models.ForeignKey(Channel, on_delete=models.CASCADE)
+    channel = models.ForeignKey(Channel, related_name="+", on_delete=models.CASCADE)
     created_at = models.DateTimeField()
     modified_at = models.DateTimeField(null=True, blank=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
-    content = models.CharField(max_length=2000)
-    previous_content = ArrayField(models.CharField(max_length=2000), default=[])
-    tagged_users = models.ManyToManyField(User)
-    tagged_channels = models.ManyToManyField(Channel)
+    content = models.CharField(max_length=2000, null=True, blank=True)
+    previous_content = ArrayField(models.CharField(max_length=2000), default=list)
+    tagged_users = models.ManyToManyField(User, related_name="+")
+    tagged_channels = models.ManyToManyField(Channel, related_name="+")
     tagged_roles = models.ManyToManyField(Role)
     tagged_everyone = models.BooleanField()
-    embeds = ArrayField(models.TextField(), default=[])
-    previous_embeds = ArrayField(ArrayField(models.TextField()), default=[])
+    embeds = ArrayField(models.TextField(), default=list)
+    previous_embeds = ArrayField(ArrayField(models.TextField()), default=list)
 
     @classmethod
     def add_new_message(cls, data):
@@ -46,7 +46,7 @@ class Message(models.Model):
         created_at = data.get('created_at')
         content = data.get('content')
         tagged_everyone = data.get('tagged_everyone')
-        if not (id and author_id and guild_id and channel_id and created_at and content and tagged_everyone):
+        if not (id and author_id and guild_id and channel_id and created_at and (tagged_everyone is not None)):
             return create_error_response("One or more required fields are missing.",
                                          status=status.HTTP_400_BAD_REQUEST)
         author = User.get_user_by_id(author_id)
@@ -97,9 +97,9 @@ class Message(models.Model):
 
     def update_message(self, data):
         if data.get('modified_at'):
-            self.modified_at = data.get('modified_at')
+            self.modified_at = datetime.fromtimestamp(int(data.get('modified_at')))
         if data.get('deleted_at'):
-            self.modified_at = data.get('deleted_at')
+            self.deleted_at = datetime.fromtimestamp(int(data.get('deleted_at')))
         if data.get('content'):
             content = data.get('content')
             if content != self.content:
@@ -164,13 +164,15 @@ class GuildInfo(models.Model):
 
 class AdminRequest(models.Model):
     guild = models.ForeignKey(Guild, on_delete=models.CASCADE)
-    author = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    author = models.ForeignKey(User, related_name="+", on_delete=models.DO_NOTHING)
     message = models.ForeignKey(Message, on_delete=models.DO_NOTHING)
-    channel = models.ForeignKey(Channel, on_delete=models.DO_NOTHING)
+    channel = models.ForeignKey(Channel, on_delete=models.DO_NOTHING, null=True)
     completed = models.BooleanField(default=False)
     requested_at = models.DateTimeField(auto_now_add=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True, default=None)
-    completed_by = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True, blank=True, default=None)
+    completed_by = models.ForeignKey(
+        User, related_name="+", on_delete=models.DO_NOTHING, null=True, blank=True, default=None
+    )
     completed_message = models.CharField(max_length=1000, null=True, blank=True, default=None)
     content = models.CharField(max_length=2000)
 
@@ -179,7 +181,7 @@ class AdminRequest(models.Model):
         completed_by_id = data.get('completed_by')
         completed_message = data.get('message')
         if not self.completed and completed:
-            self.completed_at = datetime.now()
+            self.completed_at = datetime.utcnow()
             self.completed_message = completed_message
             user = User.get_user_by_id(completed_by_id)
             if not isinstance(user, User):
@@ -227,6 +229,10 @@ class AdminRequest(models.Model):
         return create_request_success_response(request, status.HTTP_201_CREATED, many=False)
 
     @classmethod
+    def get_open_requests_by_guild(cls, guild_id):
+        return cls.objects.filter(guild__id=guild_id).filter(completed=False)
+
+    @classmethod
     def get_request_by_id(cls, id):
         try:
             return cls.objects.get(id=id)
@@ -244,8 +250,7 @@ class AdminComment(models.Model):
     updated_at = models.DateTimeField(auto_now_add=True, blank=True)
 
     @classmethod
-    def add_new_comment(cls, data):
-        request_id = data.get('request')
+    def add_new_comment(cls, data, request_id):
         author_id = data.get('author')
         content = data.get('content')
         if not (request_id and author_id and content):
@@ -259,7 +264,7 @@ class AdminComment(models.Model):
         if not isinstance(author, User):
             return create_error_response("Author Does Not Exist",
                                          status=status.HTTP_404_NOT_FOUND)
-        
+
         comment = cls(
             request=request,
             author=author,
@@ -274,3 +279,7 @@ class AdminComment(models.Model):
             return cls.objects.get(id=id)
         except ObjectDoesNotExist:
             return None
+    
+    @classmethod
+    def get_comments_by_request(cls, request):
+        return cls.objects.filter(request=request)

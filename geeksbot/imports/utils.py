@@ -3,6 +3,10 @@ import asyncio
 import typing
 
 
+async def get_guild_config(bot, guild_id):
+    guild_config = bot.cache.get()
+
+
 # noinspection PyDefaultArgument
 def to_list_of_str(items, out: list = list(), level=1, recurse=0):
     # noinspection PyShadowingNames

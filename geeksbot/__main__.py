@@ -57,6 +57,8 @@ import json  # noqa: E402
 logger.info('JSON Imported')
 import aiohttp  # noqa: E402
 logger.info('aiohttp Imported')
+import redis # noqa: E402
+logger.info('redis Imported')
 logger.info(f'Misc Libs Import Complete - Took {(datetime.utcnow() - start).total_seconds()} seconds')
 # noinspection PyRedeclaration
 # start = datetime.utcnow()
@@ -78,8 +80,11 @@ class Geeksbot(commands.Bot):
         self.config_dir = 'geeksbot/config/'
         self.config_file = 'bot_config.json'
         self.extension_dir = 'exts'
+        self.cache = redis.Redis(host=os.environ['REDIS_HOST'], port=os.environ['REDIS_PORT'], db=1, charset="utf-8", decode_responses=True)
         self.api_token = os.environ['API_TOKEN']
         self.aio_session = aiohttp.ClientSession(loop=self.loop)
+        self.auth_header = {'Authorization': f'Token {self.api_token}'}
+        self.api_base = 'https://geeksbot.app/api'
         with open(f'{self.config_dir}{self.config_file}') as f:
             self.bot_config = json.load(f)
         self.embed_color = discord.Colour.from_rgb(49, 107, 111)

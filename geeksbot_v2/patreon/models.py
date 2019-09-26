@@ -70,7 +70,7 @@ class PatreonTier(models.Model):
     description = models.TextField()
     role = models.ForeignKey(Role, on_delete=models.CASCADE)
     amount = models.IntegerField(null=True)
-    next_lower_tier = models.ForeignKey('self', null=True, blank=True)
+    next_lower_tier = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True)
 
     def update_tier(self, data):
         if data.get('guild'):
@@ -97,17 +97,17 @@ class PatreonTier(models.Model):
                 return create_error_response('Next Lower Tier Does Not Exist',
                                              status=status.HTTP_404_NOT_FOUND)
             self.next_lower_tier = tier
-        
+
         self.save()
         return create_success_tier_response(tier, status.HTTP_202_ACCEPTED, many=False)
-    
+
     @classmethod
     def get_tier_by_id(cls, id):
         try:
             return cls.objects.get(id=id)
         except ObjectDoesNotExist:
             return None
-    
+
     @classmethod
     def add_new_tier(cls, data):
         creator_str = data.get('creator')

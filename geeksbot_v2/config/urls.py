@@ -16,8 +16,10 @@ urlpatterns = [
     path("users/", include("geeksbot_v2.users.urls", namespace="users")),
     path("accounts/", include("allauth.urls")),
     # Your stuff: custom urls includes go here
-    path("api/users", include("geeksbot_v2.users.api_urls", namespace="users_api")),
-    path("api/guilds", include("geeksbot_v2.guilds.api_urls", namespace="guilds_api"))
+    path("api/users/", include("geeksbot_v2.users.api_urls", namespace="users_api")),
+    path("api/guilds/", include("geeksbot_v2.guilds.api_urls", namespace="guilds_api")),
+    path("api/channels/", include("geeksbot_v2.channels.api_urls", namespace="channels_api")),
+    path("api/messages/", include("geeksbot_v2.dmessages.api_urls", namespace="messages_api")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:

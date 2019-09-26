@@ -1,5 +1,7 @@
 {
     "load_list": [
-        "admin"
+        "admin",
+        "exec",
+        "message_events"
     ]
 }

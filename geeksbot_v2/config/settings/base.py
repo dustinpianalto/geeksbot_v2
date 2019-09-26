@@ -80,6 +80,7 @@ LOCAL_APPS = [
     "geeksbot_v2.dmessages.apps.MessagesConfig",
     "geeksbot_v2.patreon.apps.PatreonConfig",
     "geeksbot_v2.rcon.apps.RconConfig",
+    "geeksbot_v2.channels.apps.ChannelsConfig",
     # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
@@ -285,3 +286,5 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "PAGE_SIZE": 100,
 }
+
+SILENCED_SYSTEM_CHECKS = ["auth.W004"]

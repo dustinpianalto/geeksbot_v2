@@ -15,24 +15,15 @@ from .utils import create_role_success_response
 
 class Guild(models.Model):
     id = models.CharField(max_length=30, primary_key=True)
-    admin_chat = models.CharField(max_length=30, blank=True, null=True)
     new_patron_message = models.TextField(max_length=1000, blank=True, null=True)
-    default_channel = models.CharField(max_length=30)
-    new_patron_channel = models.CharField(max_length=30, blank=True, null=True)
     prefixes = ArrayField(models.CharField(max_length=10))
 
     def __str__(self):
         return self.id
 
     def update_guild(self, data):
-        if data.get('admin_chat'):
-            self.admin_chat = data.get('admin_chat')
         if data.get('new_patron_message'):
             self.new_patron_message = data.get('new_patron_message')
-        if data.get('default_channel'):
-            self.default_channel = data.get('default_channel')
-        if data.get('new_patron_channel'):
-            self.new_patron_channel = data.get('new_patron_channel')
         if data.get('add_prefix'):
             if data.get('add_prefix') not in self.prefixes:
                 self.prefixes.append(data.get('add_prefix'))
@@ -55,9 +46,8 @@ class Guild(models.Model):
     @classmethod
     def create_guild(cls, data):
         id = data.get('id')
-        default_channel = data.get('default_channel')
-        if not (id and default_channel):
-            return create_error_response('id and default_channel are required',
+        if not id:
+            return create_error_response('ID is required',
                                          status=status.HTTP_400_BAD_REQUEST)
 
         if cls.get_guild_by_id(id):
@@ -66,11 +56,8 @@ class Guild(models.Model):
 
         guild = cls(
             id=id,
-            default_channel=default_channel,
             prefixes=data.get('prefixes'),
-            admin_chat=data.get('admin_chat'),
-            new_patron_message=data.get('new_patron_message'),
-            new_patron_channel=data.get('new_patron_channel')
+            new_patron_message=data.get('new_patron_message')
         )
         guild.save()
         return create_success_response(guild, status.HTTP_201_CREATED, many=False)
@@ -89,11 +76,10 @@ class Role(models.Model):
         return create_role_success_response(self, status=status.HTTP_202_ACCEPTED, many=False)
 
     @classmethod
-    def add_new_role(cls, data):
+    def add_new_role(cls, guild_id, data):
         id = data.get('id')
-        guild_id = data.get('guild')
         role_type = data.get('role_type')
-        if not (id and guild_id and role_type):
+        if not (id and guild_id and (role_type is not None)):
             return create_error_response("The Role ID, Guild, and Role Type are required",
                                          status=status.HTTP_400_BAD_REQUEST)
 
@@ -131,6 +117,10 @@ class Role(models.Model):
             return cls.objects.get(id=id)
         except ObjectDoesNotExist:
             return None
+
+    @classmethod
+    def get_guild_roles(cls, guild):
+        return cls.objects.filter(guild__id=guild)
 
     def __str__(self):
         return f"{self.guild.id} | {self.id}"

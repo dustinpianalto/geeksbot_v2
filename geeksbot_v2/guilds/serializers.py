@@ -13,4 +13,4 @@ class GuildSerializer(serializers.ModelSerializer):
 class RoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Role
-        fields = ["id", "guild", "type"]
+        fields = ["id", "guild", "role_type"]

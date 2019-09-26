@@ -6,3 +6,4 @@ psutil
 pytz
 async_timeout
 cached_property
+redis-py
