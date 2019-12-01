@@ -150,6 +150,10 @@ class UserLogDetail(generics.RetrieveUpdateAPIView):
     lookup_url_kwarg = 'log'
     lookup_field = 'id'
 
+    def get_queryset(self):
+        user_id = self.kwargs['id']
+        return UserLog.objects.filter(user__id=user_id)
+
     # def get(self, request, id, format=None):
     #     user_log = UserLog.get_log_by_id(id)
     #     if isinstance(user_log, UserLog):
