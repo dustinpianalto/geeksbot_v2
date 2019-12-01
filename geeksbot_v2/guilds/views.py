@@ -87,6 +87,26 @@ class RolesAPI(PaginatedAPIView):
         return Role.add_new_role(guild_id, data)
 
 
+class AdminRolesAPI(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, guild_id, format=None):
+        roles = Role.get_admin_roles(guild_id)
+        if roles:
+            return create_role_success_response(roles, status=status.HTTP_200_OK, many=True)
+        return create_error_response('There are no admin roles configured',
+                                     status=status.HTTP_404_NOT_FOUND)
+
+    def put(self, request, guild_id, format=None):
+        data = dict(request.data)
+        role = Role.get_role_by_id(guild_id, data['role'])
+        if role:
+            role = role.update_role({'role_type': 100})
+            return create_role_success_response(role, status=status.HTTP_202_ACCEPTED)
+        return create_error_response("That role does not exist",
+                                     status=status.HTTP_404_NOT_FOUND)
+
+
 class RoleDetailAPI(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -101,7 +121,7 @@ class RoleDetailAPI(APIView):
                                                 status=status.HTTP_200_OK)
 
     def put(self, request, guild_id, id, format=None):
-        role = Role.get_role_by_id(id)
+        role = Role.get_role_by_id(guild_id, id)
 
         if role:
             data = dict(request.data)

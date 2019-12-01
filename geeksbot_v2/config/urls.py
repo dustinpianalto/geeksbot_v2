@@ -20,6 +20,7 @@ urlpatterns = [
     path("api/guilds/", include("geeksbot_v2.guilds.api_urls", namespace="guilds_api")),
     path("api/channels/", include("geeksbot_v2.channels.api_urls", namespace="channels_api")),
     path("api/messages/", include("geeksbot_v2.dmessages.api_urls", namespace="messages_api")),
+    path("api/rcon/", include("geeksbot_v2.rcon.api_urls", namespace="rcon_api")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:

@@ -31,7 +31,7 @@ class Channel(models.Model):
             self.new_patron = data.get('new_patron')
         if data.get('admin'):
             self.admin = data.get('admin')
-        
+
         self.save()
         return self
 
@@ -61,16 +61,25 @@ class Channel(models.Model):
         return create_success_response(channel, status.HTTP_201_CREATED, many=False)
 
     @classmethod
-    def get_channel_by_id(cls, id):
+    def get_channel_by_id(cls, guild_id, channel_id):
         try:
-            return cls.objects.get(id=id)
+            return cls.get_guild_channels(guild_id).get(id=channel_id)
         except ObjectDoesNotExist:
             return None
-    
+
     @classmethod
     def get_guild_channels(cls, guild):
         if isinstance(guild, Guild):
             return cls.objects.filter(guild=guild)
+        elif isinstance(guild, (str, int)):
+            return cls.objects.filter(guild__id=guild)
+
+    @classmethod
+    def get_admin_channel(cls, guild_id):
+        try:
+            return cls.get_guild_channels(guild_id).get(admin=True)
+        except ObjectDoesNotExist:
+            return None
 
     def __str__(self):
         return str(id)

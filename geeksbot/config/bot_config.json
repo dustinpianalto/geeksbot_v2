@@ -2,6 +2,7 @@
     "load_list": [
         "admin",
         "exec",
-        "message_events"
+        "message_events",
+        "tickets"
     ]
 }

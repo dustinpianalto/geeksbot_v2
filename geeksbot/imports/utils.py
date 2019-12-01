@@ -84,7 +84,8 @@ class Paginator:
                  field_name_char: str = '\uFFF6',
                  inline_char: str = '\uFFF5',
                  max_line_length: int = 100,
-                 embed=False):
+                 embed=False,
+                 header: str = ''):
         _max_len = 6000 if embed else 1980
         assert 0 < max_lines <= max_chars
 
@@ -110,6 +111,7 @@ class Paginator:
         self._embed_thumbnail = None
         self._embed_url = None
         self._bot = bot
+        self._header = header
 
     def set_embed_meta(self, title: str = None,
                        description: str = None,
@@ -129,7 +131,7 @@ class Paginator:
         self._embed_thumbnail = thumbnail
         self._embed_url = url
 
-    def pages(self) -> typing.List[str]:
+    def pages(self, page_headers: bool = True) -> typing.List[str]:
         _pages = list()
         _fields = list()
         _page = ''
@@ -138,10 +140,16 @@ class Paginator:
         _field_value = ''
         _inline = False
 
-        def open_page():
+        def open_page(initial: bool = False):
             nonlocal _page, _lines, _fields
             if not self._embed:
-                _page = self._prefix
+                if initial and not page_headers:
+                    _page = self._header
+                elif page_headers:
+                    _page = self._header
+                else:
+                    _page = ''
+                _page += self._prefix
                 _lines = 0
             else:
                 _fields = list()
@@ -156,7 +164,7 @@ class Paginator:
                     _pages.append(_fields)
             open_page()
 
-        open_page()
+        open_page(initial=True)
 
         if not self._embed:
             for part in [str(p) for p in self._parts]:
@@ -253,6 +261,9 @@ class Paginator:
     def __eq__(self, other):
         # noinspection PyProtectedMember
         return self.__class__ == other.__class__ and self._parts == other._parts
+
+    def set_header(self, header: str = ''):
+        self._header = header
 
     def add_page_break(self, *, to_beginning: bool = False) -> None:
         self.add(self._page_break, to_beginning=to_beginning)

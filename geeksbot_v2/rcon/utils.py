@@ -12,3 +12,8 @@ def create_success_response(rcon_data, status, many: bool = False):
 
     return Response(RconServerSerializer(rcon_data, many=many).data,
                     status=status)
+
+
+def create_rcon_response(message, status):
+    msg_list = message.split('\n')
+    return Response(msg_list, status=status)

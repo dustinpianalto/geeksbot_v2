@@ -120,7 +120,7 @@ class RconServer(models.Model):
     @classmethod
     def get_guild_servers(cls, guild_id):
         guild = Guild.get_guild_by_id(guild_id)
-        if not isinstance(guild, guild):
+        if not isinstance(guild, Guild):
             return None
         return cls.objects.filter(guild=guild)
 

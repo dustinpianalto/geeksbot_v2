@@ -1,4 +1,4 @@
-discord.py
+discord.py>=1.2.5
 aiohttp<3.6.0
 aiofiles
 python-dateutil
@@ -6,4 +6,4 @@ psutil
 pytz
 async_timeout
 cached_property
-redis-py
+redis

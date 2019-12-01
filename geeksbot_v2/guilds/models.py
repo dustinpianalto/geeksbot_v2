@@ -73,7 +73,7 @@ class Role(models.Model):
             self.role_type = data.get('role_type')
 
         self.save()
-        return create_role_success_response(self, status=status.HTTP_202_ACCEPTED, many=False)
+        return self
 
     @classmethod
     def add_new_role(cls, guild_id, data):
@@ -112,15 +112,22 @@ class Role(models.Model):
         return create_role_success_response(role, status.HTTP_201_CREATED, many=False)
 
     @classmethod
-    def get_role_by_id(cls, id):
+    def get_role_by_id(cls, guild_id, role_id):
         try:
-            return cls.objects.get(id=id)
+            return cls.get_guild_roles(guild_id).get(id=role_id)
         except ObjectDoesNotExist:
             return None
 
     @classmethod
     def get_guild_roles(cls, guild):
         return cls.objects.filter(guild__id=guild)
+
+    @classmethod
+    def get_admin_roles(cls, guild_id):
+        try:
+            return cls.get_guild_roles(guild_id).filter(role_type__gte=90)
+        except ObjectDoesNotExist:
+            return None
 
     def __str__(self):
         return f"{self.guild.id} | {self.id}"

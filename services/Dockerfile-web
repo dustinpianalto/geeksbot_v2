@@ -1,4 +1,4 @@
-FROM base AS web
+FROM geeksbot-base AS geeksbot-web
 
 WORKDIR /code
 

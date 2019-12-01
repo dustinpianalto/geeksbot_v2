@@ -57,7 +57,7 @@ class Message(models.Model):
         if not isinstance(guild, Guild):
             return create_error_response("Guild Does Not Exist",
                                          status=status.HTTP_404_NOT_FOUND)
-        channel = Channel.get_channel_by_id(channel_id)
+        channel = Channel.get_channel_by_id(guild_id, channel_id)
         if not isinstance(channel, Channel):
             return create_error_response("Channel Does Not Exist",
                                          status=status.HTTP_404_NOT_FOUND)
@@ -89,7 +89,7 @@ class Message(models.Model):
         if data.get('tagged_channels'):
             tagged_channels = data.get('tagged_channels')
             for channel_id in tagged_channels:
-                channel = Channel.get_channel_by_id(channel_id)
+                channel = Channel.get_channel_by_id(guild_id, channel_id)
                 if channel:
                     message.tagged_channels.add(channel)
 
@@ -179,8 +179,9 @@ class AdminRequest(models.Model):
     def update_request(self, data):
         completed = data.get('completed', False)
         completed_by_id = data.get('completed_by')
-        completed_message = data.get('message')
+        completed_message = data.get('message', '')
         if not self.completed and completed:
+            self.completed = completed
             self.completed_at = datetime.utcnow()
             self.completed_message = completed_message
             user = User.get_user_by_id(completed_by_id)
@@ -192,8 +193,7 @@ class AdminRequest(models.Model):
         return create_request_success_response(self, status.HTTP_202_ACCEPTED)
 
     @classmethod
-    def add_new_request(cls, data):
-        guild_id = data.get('guild')
+    def add_new_request(cls, guild_id, data):
         author_id = data.get('author')
         message_id = data.get('message')
         channel_id = data.get('channel')
@@ -205,7 +205,7 @@ class AdminRequest(models.Model):
         if not isinstance(guild, Guild):
             return create_error_response('Guild Does Not Exist',
                                          status=status.HTTP_404_NOT_FOUND)
-        author = User.get_author_by_id(author_id)
+        author = User.get_user_by_id(author_id)
         if not isinstance(author, User):
             return create_error_response('Author Does Not Exist',
                                          status=status.HTTP_404_NOT_FOUND)
@@ -213,10 +213,12 @@ class AdminRequest(models.Model):
         if not isinstance(message, Message):
             return create_error_response('Message Does Not Exist',
                                          status=status.HTTP_404_NOT_FOUND)
-        channel = Channel.get_channel_by_id(channel_id)
+        channel = Channel.get_channel_by_id(guild_id, channel_id)
         if not isinstance(channel, Channel):
             return create_error_response('Channel Does Not Exist',
                                          status=status.HTTP_404_NOT_FOUND)
+
+        print('test')
 
         request = cls(
             guild=guild,
@@ -233,14 +235,18 @@ class AdminRequest(models.Model):
         return cls.objects.filter(guild__id=guild_id).filter(completed=False)
 
     @classmethod
-    def get_request_by_id(cls, id):
+    def get_open_request_by_id(cls, guild_id, request_id):
         try:
-            return cls.objects.get(id=id)
+            return cls.get_open_requests_by_guild(guild_id).get(id=request_id)
         except ObjectDoesNotExist:
             return None
 
     def __str__(self):
         return f"{self.guild.id} | {self.requested_at} | By {self.author.id}"
+
+    @classmethod
+    def get_open_requests_by_guild_author(cls, guild_id, author_id):
+        return cls.get_open_requests_by_guild(guild_id).filter(author__id=author_id)
 
 
 class AdminComment(models.Model):
@@ -250,13 +256,13 @@ class AdminComment(models.Model):
     updated_at = models.DateTimeField(auto_now_add=True, blank=True)
 
     @classmethod
-    def add_new_comment(cls, data, request_id):
+    def add_new_comment(cls, data, guild_id, request_id):
         author_id = data.get('author')
         content = data.get('content')
         if not (request_id and author_id and content):
             return create_error_response('Request, Author, and Content are required fields',
                                          status=status.HTTP_400_BAD_REQUEST)
-        request = AdminRequest.get_request_by_id(request_id)
+        request = AdminRequest.get_open_request_by_id(guild_id, request_id)
         if not isinstance(request, AdminRequest):
             return create_error_response("Admin Request Does Not Exist",
                                          status=status.HTTP_404_NOT_FOUND)
@@ -274,12 +280,12 @@ class AdminComment(models.Model):
         return create_comment_success_response(comment, status.HTTP_201_CREATED, many=False)
 
     @classmethod
-    def get_comment_by_id(cls, id):
+    def get_comment_by_id(cls, comment_id):
         try:
-            return cls.objects.get(id=id)
+            return cls.objects.get(id=comment_id)
         except ObjectDoesNotExist:
             return None
-    
+
     @classmethod
     def get_comments_by_request(cls, request):
-        return cls.objects.filter(request=request)
+        return cls.objects.filter(request=request).order_by('updated_at')

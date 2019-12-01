@@ -1,25 +1,25 @@
 version: '3'
 
 services:
-  base:
+  geeksbot-base:
     build:
       context: .
       dockerfile: "${PWD}/services/Dockerfile-base"
-    image: base:latest
-  
-  db:
+    image: geeksbot-base:latest
+
+  geeksbot-db:
     image: postgres
     ports:
       - "5432:5432"
     volumes:
       - "${PWD}/services/postgresql/postgres.conf:/etc/postgresql/postgresql.conf"
-      - "db:/var/lib/postgresql/data:rw"
+      - "geeksbot-db:/var/lib/postgresql/data:rw"
     env_file: ${PWD}/.env
-  redis:
+  geeksbot-redis:
     image: redis:5.0.3
     ports:
       - "6379:6379"
-  web:
+  geeksbot-web:
     build:
       context: .
       dockerfile: "${PWD}/services/Dockerfile-web"
@@ -29,9 +29,9 @@ services:
       - "8000:8000"
       - "443:443"
     depends_on:
-      - db
-      - redis
-      - base
+      - geeksbot-db
+      - geeksbot-redis
+      - geeksbot-base
     environment:
       - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
       - REDIS_URL=redis://${REDIS_HOST}:${REDIS_PORT}/${REDIS_DB}
@@ -43,12 +43,12 @@ services:
       dockerfile: "${PWD}/services/Dockerfile-geeksbot"
     env_file: ${PWD}/.env
     depends_on:
-      - db
-      - redis
-      - base
-      - web
+      - geeksbot-db
+      - geeksbot-redis
+      - geeksbot-base
+      - geeksbot-web
     links:
-      - web:geeksbot.app
+      - geeksbot-web:geeksbot.app
     volumes:
       - ${PWD}/geeksbot:/code/geeksbot
       - ~/.ssh/id_rsa:/root/.ssh/id_rsa
@@ -56,5 +56,5 @@ services:
       - ~/.ssh/known_hosts:/root/.ssh/known_hosts
 
 volumes:
-  db:
+  geeksbot-db:
     external: true
