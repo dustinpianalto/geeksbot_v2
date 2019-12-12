@@ -72,7 +72,7 @@ logger.info('Imports Complete')
 
 class Geeksbot(commands.Bot):
     def __init__(self, *args, **kwargs):
-        self.default_prefix = os.environ('DISCORD_DEFAULT_PREFIX') or 'g$'
+        self.default_prefix = os.environ.get('DISCORD_DEFAULT_PREFIX', 'g$')
         kwargs['command_prefix'] = self.default_prefix
         self.description = "Geeksbot v2"
         kwargs['description'] = self.description
