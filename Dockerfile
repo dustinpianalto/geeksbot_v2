@@ -1,4 +1,4 @@
-FROM python:3.7-alpine AS geeksbot-base
+FROM python:3.8-alpine AS geeksbot
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV PYTHONUNBUFFERED 1
@@ -27,4 +27,15 @@ ENV LANG C.UTF-8
 RUN pip install --upgrade pip
 RUN pip install virtualenv
 
-RUN apk update && apk add postgresql-client
+WORKDIR /code
+
+COPY requirements/base.txt .
+COPY requirements/production.txt .
+COPY requirements/geeksbot.txt .
+COPY .env .
+COPY entrypoint .
+
+RUN pip install -r production.txt
+RUN pip install -r geeksbot.txt
+
+CMD ["./entrypoint"]

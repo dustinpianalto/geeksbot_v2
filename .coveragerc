@@ -1,5 +1,0 @@
-[run]
-include = geeksbot_v2/*
-omit = *migrations*, *tests*
-plugins =
-    django_coverage_plugin
