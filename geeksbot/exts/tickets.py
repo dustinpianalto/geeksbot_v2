@@ -236,22 +236,18 @@ class Tickets(commands.Cog):
             requestor = ctx.guild.get_member(int(request['author']))
             if requestor == ctx.author or admin:
                 pag = Paginator(self.bot, prefix='```md', suffix='```')
-                header = f''
-                if request_resp.status == 200:
-                    request = await request_resp.json()
-                    requestor = ctx.guild.get_member(int(request["author"]))
-                    header += (f'Request {id} by {requestor.mention if requestor else "`User cannot be found`"}:\n'
-                               f'```{request["content"]}```')
-                    pag.set_header(header)
+                header = (f'Request {id} by {requestor.mention if requestor else "`User cannot be found`"}:\n'
+                          f'```{request["content"]}```')
+                pag.set_header(header)
 
-                    if request.get('comments'):
-                        comments = request['comments']
-                        for comment in comments:
-                            author = ctx.guild.get_member(int(comment['author']))
-                            pag.add(f'{author.display_name}: {comment["content"]}', keep_intact=True)
-                    if ctx.author != requestor and requestor:
-                        for page in pag.pages(page_headers=False):
-                            await requestor.send(page)
+                if request.get('comments'):
+                    pag.add('Comments: \n')
+                    comments = request['comments']
+                    for comment in comments:
+                        author = ctx.guild.get_member(int(comment['author']))
+                        pag.add(f'{author.display_name}: {comment["content"]}', keep_intact=True)
+                else:
+                    pag.add('No Comments')
                 book = Book(pag, (None, ctx.channel, self.bot, ctx.message))
                 await book.create_book()
             else:
