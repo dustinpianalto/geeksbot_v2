@@ -240,7 +240,7 @@ class Tickets(commands.Cog):
                 if request_resp.status == 200:
                     request = await request_resp.json()
                     requestor = ctx.guild.get_member(int(request["author"]))
-                    header += (f'Original Request by {requestor.mention if requestor else "`User cannot be found`"}:\n'
+                    header += (f'Request {id} by {requestor.mention if requestor else "`User cannot be found`"}:\n'
                                f'```{request["content"]}```')
                     pag.set_header(header)
 
