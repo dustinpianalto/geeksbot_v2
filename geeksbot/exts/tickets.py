@@ -213,6 +213,54 @@ class Tickets(commands.Cog):
                 else:
                     await ctx.send('That is not your request to close.')
 
+    @commands.command()
+    async def view(self, ctx, id=None):
+        if not id:
+            await ctx.send('Please include at least one Request ID to close.')
+            return
+
+        admin = False
+        admin_roles_resp = await self.bot.aio_session.get(f'{self.bot.api_base}/guilds/{ctx.guild.id}/roles/admin/',
+                                                          headers=self.bot.auth_header)
+        if admin_roles_resp.status == 200:
+            admin_roles_data = await admin_roles_resp.json()
+            admin_roles = [ctx.guild.get_role(int(role['id'])) for role in admin_roles_data]
+            if any([role in ctx.author.roles for role in admin_roles]):
+                admin = True
+
+
+        request_resp = await self.bot.aio_session.get(f'{self.bot.api_base}/messages/{ctx.guild.id}/requests/{id}/',
+                                                      headers=self.bot.auth_header)
+        if request_resp.status == 200:
+            request = await request_resp.json()
+            requestor = ctx.guild.get_member(int(request['author']))
+            if requestor == ctx.author or admin:
+                pag = Paginator(self.bot)
+                title = (f"<{'Request ID':^20} {'Requested By':^20}>\n"
+                         f"<{request['id']:^20} {requestor.display_name if requestor else 'None':^20}>")
+                orig_channel = ctx.guild.get_channel(int(request.get('channel')))
+                comments_resp = await self.bot.aio_session.get(
+                    f'{self.bot.api_base}/messages/{ctx.guild.id}/requests/{request["id"]}/comments/',
+                    headers=self.bot.auth_header)
+                comments_text = 'Comments: '
+                if comments_resp.status == 200:
+                    comments_text += '\n'
+                    for comment in await comments_resp.json():
+                        author = ctx.guild.get_member(int(comment['author']))
+                        comments_text += f'{author.display_name}: {comment["content"]}\n\n'
+                else:
+                    comments_text += 'None'
+                pag.add(f"\n\n{title}\n"
+                        f"{request['content']}\n\n"
+                        f"{comments_text}"
+                        f"Requested at: "
+                        f"{request['requested_at'].split('.')[0].replace('T', ' ')} GMT\n"
+                        f"In {orig_channel.name if orig_channel else 'N/A'}", keep_intact=True)
+                for page in pag.pages():
+                    await ctx.send(page)
+            else:
+                await ctx.send('That is not your request to close.')
+
 
 def setup(bot):
     bot.add_cog(Tickets(bot))
