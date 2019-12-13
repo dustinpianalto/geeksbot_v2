@@ -216,7 +216,7 @@ class Tickets(commands.Cog):
     @commands.command()
     async def view(self, ctx, id=None):
         if not id:
-            await ctx.send('Please include at least one Request ID to close.')
+            await ctx.send('Please include the id of the request you would like to view.')
             return
 
         admin = False
@@ -235,29 +235,25 @@ class Tickets(commands.Cog):
             request = await request_resp.json()
             requestor = ctx.guild.get_member(int(request['author']))
             if requestor == ctx.author or admin:
-                pag = Paginator(self.bot)
-                title = (f"<{'Request ID':^20} {'Requested By':^20}>\n"
-                         f"<{request['id']:^20} {requestor.display_name if requestor else 'None':^20}>")
-                orig_channel = ctx.guild.get_channel(int(request.get('channel')))
-                comments_resp = await self.bot.aio_session.get(
-                    f'{self.bot.api_base}/messages/{ctx.guild.id}/requests/{request["id"]}/comments/',
-                    headers=self.bot.auth_header)
-                comments_text = 'Comments: '
-                if comments_resp.status == 200:
-                    comments_text += '\n'
-                    for comment in await comments_resp.json():
-                        author = ctx.guild.get_member(int(comment['author']))
-                        comments_text += f'{author.display_name}: {comment["content"]}\n\n'
-                else:
-                    comments_text += 'None'
-                pag.add(f"\n\n{title}\n"
-                        f"{request['content']}\n\n"
-                        f"{comments_text}"
-                        f"Requested at: "
-                        f"{request['requested_at'].split('.')[0].replace('T', ' ')} GMT\n"
-                        f"In {orig_channel.name if orig_channel else 'N/A'}", keep_intact=True)
-                for page in pag.pages():
-                    await ctx.send(page)
+                pag = Paginator(self.bot, prefix='```md', suffix='```')
+                header = f''
+                if request_resp.status == 200:
+                    request = await request_resp.json()
+                    requestor = ctx.guild.get_member(int(request["author"]))
+                    header += (f'Original Request by {requestor.mention if requestor else "`User cannot be found`"}:\n'
+                               f'```{request["content"]}```')
+                    pag.set_header(header)
+
+                    if request.get('comments'):
+                        comments = request['comments']
+                        for comment in comments:
+                            author = ctx.guild.get_member(int(comment['author']))
+                            pag.add(f'{author.display_name}: {comment["content"]}', keep_intact=True)
+                    if ctx.author != requestor and requestor:
+                        for page in pag.pages(page_headers=False):
+                            await requestor.send(page)
+                book = Book(pag, (None, ctx.channel, self.bot, ctx.message))
+                await book.create_book()
             else:
                 await ctx.send('That is not your request to close.')
 
