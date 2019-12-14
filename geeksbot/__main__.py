@@ -66,6 +66,8 @@ logger.info(f'Misc Libs Import Complete - Took {(datetime.utcnow() - start).tota
 # from geeksbot.imports import message_logging
 # logger.info(f'Geeksbot Libs Import Complete - Took {(datetime.utcnow() - start).total_seconds()} seconds')
 
+from geeksbot.imports.checks import is_me
+
 
 logger.info('Imports Complete')
 
@@ -94,6 +96,7 @@ class Geeksbot(commands.Bot):
         self.geo_api = '2d4e419c2be04c8abe91cb5dd1548c72'
         self.git_url = 'https://github.com/dustinpianalto/geeksbot_v2'
         self.load_default_extensions()
+        self.owner_id = 351794468870946827
 
         self.book_emojis = {
                             'unlock': '🔓',
@@ -125,8 +128,8 @@ class Geeksbot(commands.Bot):
 bot = Geeksbot(case_insensitive=True)
 
 
+@is_me()
 @bot.command(hidden=True)
-@commands.is_owner()
 async def load(ctx, mod=None):
     """Allows the owner to load extensions dynamically"""
     logger.info(f"Starting to load {mod}")
@@ -135,8 +138,8 @@ async def load(ctx, mod=None):
     logger.info(f"{mod} loaded")
 
 
+@is_me()
 @bot.command(hidden=True)
-@commands.is_owner()
 async def reload(ctx, mod=None):
     """Allows the owner to reload extensions dynamically"""
     if mod == 'all':
@@ -151,8 +154,8 @@ async def reload(ctx, mod=None):
         await ctx.send(f'{mod} reloaded')
 
 
+@is_me()
 @bot.command(hidden=True)
-@commands.is_owner()
 async def unload(ctx, mod):
     """Allows the owner to unload extensions dynamically"""
     logger.info(f"Starting to unload {mod}")
