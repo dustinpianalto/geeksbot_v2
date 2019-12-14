@@ -109,10 +109,12 @@ class Geeksbot(commands.Bot):
                             }
 
     async def load_ext(self, mod):
+        logger.info(f"Starting to load {mod}")
         self.load_extension(f'geeksbot.{self.extension_dir}.{mod}')
         logger.info(f'Extension Loaded: {mod}')
 
     async def unload_ext(self, mod):
+        logger.info(f"Starting to unload {mod}")
         self.unload_extension(f'geeksbot.{self.extension_dir}.{mod}')
         logger.info(f'Extension Unloaded: {mod}')
 
@@ -132,10 +134,8 @@ bot = Geeksbot(case_insensitive=True)
 @bot.command(hidden=True)
 async def load(ctx, mod=None):
     """Allows the owner to load extensions dynamically"""
-    logger.info(f"Starting to load {mod}")
     await bot.load_ext(mod)
     await ctx.send(f'{mod} loaded')
-    logger.info(f"{mod} loaded")
 
 
 @is_me()
@@ -158,10 +158,8 @@ async def reload(ctx, mod=None):
 @bot.command(hidden=True)
 async def unload(ctx, mod):
     """Allows the owner to unload extensions dynamically"""
-    logger.info(f"Starting to unload {mod}")
     await bot.unload_ext(mod)
     await ctx.send(f'{mod} unloaded')
-    logger.info(f"{mod} unloaded")
 
 
 @bot.event
