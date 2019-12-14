@@ -11,7 +11,7 @@ class UserEvents(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.Cog.listner()
+    @commands.Cog.listener()
     async def on_user_update(self, before, after):
         data = {
             'username': after.name,
