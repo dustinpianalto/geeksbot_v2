@@ -89,7 +89,6 @@ class Geeksbot(commands.Bot):
             self.bot_config = json.load(f)
         self.embed_color = discord.Colour.from_rgb(49, 107, 111)
         self.error_color = discord.Colour.from_rgb(142, 29, 31)
-        self.owner_id = 351794468870946827
         self.tpe = futures.ThreadPoolExecutor(max_workers=20)
         self.process_pool = Pool(processes=4)
         self.geo_api = '2d4e419c2be04c8abe91cb5dd1548c72'
