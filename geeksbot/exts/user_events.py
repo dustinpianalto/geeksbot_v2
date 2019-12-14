@@ -14,6 +14,7 @@ class UserEvents(commands.Cog):
     @commands.Cog.listener()
     async def on_user_update(self, before, after):
         data = {
+            'id': after.id,
             'username': after.name,
             'discriminator': after.discriminator,
             'animated': after.is_avatar_animated(),
