@@ -130,8 +130,10 @@ bot = Geeksbot(case_insensitive=True)
 @commands.is_owner()
 async def load(ctx, mod=None):
     """Allows the owner to load extensions dynamically"""
+    logger.info(f"Starting to load {mod}")
     await bot.load_ext(mod)
     await ctx.send(f'{mod} loaded')
+    logger.info(f"{mod} loaded")
 
 
 @bot.command(hidden=True)
@@ -154,8 +156,10 @@ async def reload(ctx, mod=None):
 @commands.is_owner()
 async def unload(ctx, mod):
     """Allows the owner to unload extensions dynamically"""
+    logger.info(f"Starting to unload {mod}")
     await bot.unload_ext(mod)
     await ctx.send(f'{mod} unloaded')
+    logger.info(f"{mod} unloaded")
 
 
 @bot.event
