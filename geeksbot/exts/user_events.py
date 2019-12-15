@@ -59,6 +59,7 @@ class UserEvents(commands.Cog):
                 in msg.get('id', []):
             data = {
                 'id': member.id,
+                'username': member.name,
                 'guilds': [f'{self.bot.api_base}/guilds/{member.guild.id}/']
             }
             resp = await self.bot.aio_session.put(f'{self.bot.api_base}/users/{member.id}/',
