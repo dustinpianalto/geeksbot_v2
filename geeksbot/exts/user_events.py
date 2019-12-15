@@ -66,7 +66,7 @@ class UserEvents(commands.Cog):
                                                   headers=self.bot.auth_header,
                                                   json=data)
             msg = await resp.json()
-        user_logger.info(f'User Joined: {msg}')
+        user_logger.info(f'User Joined Guild {member.guild}: {msg}')
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
@@ -79,7 +79,7 @@ class UserEvents(commands.Cog):
                                                 headers=self.bot.auth_header,
                                                 json=data)
         msg = await resp.json()
-        user_logger.info(f'User Left {member.guild}: {msg}')
+        user_logger.info(f'User Left Guild {member.guild}: {msg}')
 
 
 def setup(bot):
