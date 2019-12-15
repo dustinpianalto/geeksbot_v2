@@ -71,11 +71,11 @@ class UserEvents(commands.Cog):
     async def on_member_remove(self, member):
         data = {
             'id': member.id,
-            'guilds': [f'-{self.bot.api_base}/guilds/{member.guild.id}/']
+            'guilds': [f'{self.bot.api_base}/guilds/{member.guild.id}/']
         }
-        resp = await self.bot.aio_session.put(f'{self.bot.api_base}/users/{member.id}/',
-                                              headers=self.bot.auth_header,
-                                              json=data)
+        resp = await self.bot.aio_session.patch(f'{self.bot.api_base}/users/{member.id}/',
+                                                headers=self.bot.auth_header,
+                                                json=data)
         msg = await resp.json()
         user_logger.info(f'User Left {member.guild}: {msg}')
 
