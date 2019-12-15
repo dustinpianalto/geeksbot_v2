@@ -71,7 +71,8 @@ class UserEvents(commands.Cog):
     async def on_member_remove(self, member):
         data = {
             'id': member.id,
-            'guilds': [f'{self.bot.api_base}/guilds/{member.guild.id}/']
+            # Because this doesn't go through the serializer we just use the id for the guild
+            'guilds': [str(member.guild.id)]
         }
         resp = await self.bot.aio_session.patch(f'{self.bot.api_base}/users/{member.id}/',
                                                 headers=self.bot.auth_header,
