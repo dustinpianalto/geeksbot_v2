@@ -23,7 +23,22 @@ class UserEvents(commands.Cog):
         resp = await self.bot.aio_session.put(f'{self.bot.api_base}/users/{after.id}/',
                                               headers=self.bot.auth_header,
                                               json=data)
-        user_logger.info(f'User Update Response:\n{await resp.json()}')
+        msg = await resp.json()
+        if resp.status == 400:
+            data = {
+                'id': after.id,
+                'username': after.username,
+                'discriminator': after.discriminator,
+                'guilds': [f'{self.bot.api_base}/guilds/{after.guild.id}/'],
+                'animated': after.is_avatar_animated(),
+                'avatar': after.avatar or str(after.default_avatar),
+                'bot': after.bot
+            }
+            resp = await self.bot.aio_session.post(f'{self.bot.api_base}/users/',
+                                                   headers=self.bot.auth_header,
+                                                   json=data)
+            msg = await resp.json()
+        user_logger.info(f'User Update Response:\n{msg}')
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
@@ -50,11 +65,19 @@ class UserEvents(commands.Cog):
                                                   headers=self.bot.auth_header,
                                                   json=data)
             msg = await resp.json()
-        user_logger.info(f'User Joined: {resp}')
+        user_logger.info(f'User Joined: {msg}')
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
-        pass
+        data = {
+            'id': member.id,
+            'guilds': [f'-{self.bot.api_base}/guilds/{member.guild.id}/']
+        }
+        resp = await self.bot.aio_session.put(f'{self.bot.api_base}/users/{member.id}/',
+                                              headers=self.bot.auth_header,
+                                              json=data)
+        msg = await resp.json()
+        user_logger.info(f'User Left {member.guild}: {msg}')
 
 
 def setup(bot):
