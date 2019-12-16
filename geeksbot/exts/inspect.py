@@ -60,7 +60,7 @@ class Inspect(commands.Cog):
                                        f'Process: {process}\n'
                                        f'Increment Counter: {counter}',
                            color=self.bot.embed_color)
-        await ctx.send(em)
+        await ctx.send(embed=em)
 
 
 def setup(bot):
