@@ -1,0 +1,1 @@
+from geeksbot.__main__ import Geeksbot

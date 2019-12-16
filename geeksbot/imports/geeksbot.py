@@ -66,7 +66,7 @@ class Geeksbot(commands.Bot):
         for load_item in self.bot_config['load_list']:
             self.loop.create_task(self.load_ext(load_item))
 
-    async def get_prefixes(self, message):
+    async def get_prefixes(self, bot, message):
         return self.default_prefix.casefold()
 
     async def close(self):
