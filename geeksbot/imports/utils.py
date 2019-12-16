@@ -8,6 +8,15 @@ async def get_guild_config(bot, guild_id):
     guild_config = bot.cache.get()
 
 
+def create_date_string(time, time_now):
+    diff = (time_now - time)
+    date_str = time.strftime('%Y-%m-%d %H:%M:%S')
+    return f"{diff.days} {'day' if diff.days == 1 else 'days'} " \
+           f"{diff.seconds // 3600} {'hour' if diff.seconds // 3600 == 1 else 'hours'} " \
+           f"{diff.seconds % 3600 // 60} {'minute' if diff.seconds % 3600 // 60 == 1 else 'minutes'} " \
+           f"{diff.seconds % 3600 % 60} {'second' if diff.seconds % 3600 % 60 == 1 else 'seconds'} ago.\n{date_str}"
+
+
 def process_snowflake(snowflake: int) -> typing.Tuple[datetime, int, int, int]:
     DISCORD_EPOCH = 1420070400000
     TIME_BITS_LOC = 22
@@ -16,7 +25,7 @@ def process_snowflake(snowflake: int) -> typing.Tuple[datetime, int, int, int]:
     PROCESS_ID_LOC = 12
     PROCESS_ID_MASK = 0x1F000
     INCREMENT_MASK = 0xFFF
-    creation_time = datetime.fromtimestamp((snowflake >> TIME_BITS_LOC) + DISCORD_EPOCH)
+    creation_time = datetime.fromtimestamp(((snowflake >> TIME_BITS_LOC) + DISCORD_EPOCH) / 1000.0)
     worker_id = (snowflake >> WORKER_ID_LOC) & WORKER_ID_MASK
     process_id = (snowflake >> PROCESS_ID_LOC) & PROCESS_ID_MASK
     counter = snowflake & INCREMENT_MASK

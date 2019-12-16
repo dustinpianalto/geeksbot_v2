@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from datetime import datetime, timedelta
-from geeksbot.imports.utils import process_snowflake
+from geeksbot.imports.utils import process_snowflake, create_date_string
 
 
 class Inspect(commands.Cog):
@@ -22,10 +22,10 @@ class Inspect(commands.Cog):
                      value=f'{member.bot}',
                      inline=True)
         em.add_field(name=f'Joined Guild:',
-                     value=f'{self.create_date_string(member.joined_at, ctx.message.created_at)}',
+                     value=f'{create_date_string(member.joined_at, ctx.message.created_at)}',
                      inline=False)
         em.add_field(name=f'Joined Discord:',
-                     value=f'{self.create_date_string(member.created_at, ctx.message.created_at)}',
+                     value=f'{create_date_string(member.created_at, ctx.message.created_at)}',
                      inline=False)
         em.add_field(name=f'Current Status:',
                      value=f'{member.status}',
@@ -49,8 +49,10 @@ class Inspect(commands.Cog):
             snowflake = int(snowflake)
         except ValueError:
             await ctx.send('That is not a valid snowflake')
-        if len(bin(snowflake))-2 < 63 or len(bin(snowflake))-2 > 64:
+            return
+        if len(bin(snowflake))-2 < 23 or len(bin(snowflake))-2 > 64:
             await ctx.send('That is not a valid snowflake')
+            return
         creation_time, worker, process, counter = process_snowflake(snowflake)
         em = discord.Embed(title=str(snowflake),
                            description=f'Created At: {creation_time.strftime("%c")}\n'
