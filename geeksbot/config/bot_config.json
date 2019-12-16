@@ -4,6 +4,7 @@
         "exec",
         "message_events",
         "user_events",
-        "tickets"
+        "tickets",
+        "inspect"
     ]
 }
