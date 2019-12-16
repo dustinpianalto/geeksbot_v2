@@ -6,6 +6,8 @@ import traceback
 
 from geeksbot.imports.utils import Paginator, Book
 
+command_logger = logging.getLogger('commands')
+
 
 class CommandEvents(commands.Cog):
     def __init__(self, bot):
@@ -18,9 +20,11 @@ class CommandEvents(commands.Cog):
         pag.add(f'\uFFF6Command Error')
         pag.add(error)
         pag.add('\uFFF7\n\uFFF8')
-        pag.add(''.join(traceback.format_exception(type(error), error, error.__traceback__)))
+        full_error = ''.join(traceback.format_exception(type(error), error, error.__traceback__))
+        pag.add(full_error)
         book = Book(pag, (None, ctx.channel, self.bot, ctx.message))
         await book.create_book()
+        command_logger.error(full_error)
 
 
 def setup(bot):
