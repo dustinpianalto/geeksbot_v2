@@ -9,7 +9,9 @@ class Inspect(commands.Cog):
         self.bot = bot
 
     @commands.command(aliases=['u'])
-    async def user(self, ctx, member: discord.Member):
+    async def user(self, ctx, member: discord.Member = None):
+        if not member:
+            member = ctx.author
         em = discord.Embed(style='rich',
                            title=f'{member.name}#{member.discriminator} ({member.display_name})',
                            description=f'({member.id})',
@@ -29,9 +31,6 @@ class Inspect(commands.Cog):
                      inline=False)
         em.add_field(name=f'Current Status:',
                      value=f'{member.status}',
-                     inline=True)
-        em.add_field(name=f"Currently{' ' + member.activity.type.name.title() if member.activity else ''}:",
-                     value=f"{member.activity.name if member.activity else 'Not doing anything important.'}",
                      inline=True)
         count = 0
         async for message in ctx.channel.history(after=(ctx.message.created_at - timedelta(hours=1))):
