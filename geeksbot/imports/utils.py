@@ -1,10 +1,26 @@
 import discord
 import asyncio
 import typing
+from datetime import datetime
 
 
 async def get_guild_config(bot, guild_id):
     guild_config = bot.cache.get()
+
+
+def process_snowflake(snowflake: int) -> typing.Tuple[datetime, int, int, int]:
+    DISCORD_EPOCH = 1420070400000
+    TIME_BITS_LOC = 22
+    WORKER_ID_LOC = 17
+    WORKER_ID_MASK = 0x3E0000
+    PROCESS_ID_LOC = 12
+    PROCESS_ID_MASK = 0x1F000
+    INCREMENT_MASK = 0xFFF
+    creation_time = datetime.fromtimestamp((snowflake >> TIME_BITS_LOC) + DISCORD_EPOCH)
+    worker_id = (snowflake >> WORKER_ID_LOC) & WORKER_ID_MASK
+    process_id = (snowflake >> PROCESS_ID_LOC) & PROCESS_ID_MASK
+    counter = snowflake & INCREMENT_MASK
+    return creation_time, worker_id, process_id, counter
 
 
 # noinspection PyDefaultArgument
