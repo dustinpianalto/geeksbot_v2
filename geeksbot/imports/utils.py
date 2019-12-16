@@ -26,8 +26,8 @@ def process_snowflake(snowflake: int) -> typing.Tuple[datetime, int, int, int]:
     PROCESS_ID_MASK = 0x1F000
     INCREMENT_MASK = 0xFFF
     creation_time = datetime.fromtimestamp(((snowflake >> TIME_BITS_LOC) + DISCORD_EPOCH) / 1000.0)
-    worker_id = (snowflake >> WORKER_ID_LOC) & WORKER_ID_MASK
-    process_id = (snowflake >> PROCESS_ID_LOC) & PROCESS_ID_MASK
+    worker_id = (snowflake & WORKER_ID_MASK) >> WORKER_ID_LOC
+    process_id = (snowflake & PROCESS_ID_MASK) >> PROCESS_ID_LOC
     counter = snowflake & INCREMENT_MASK
     return creation_time, worker_id, process_id, counter
 
