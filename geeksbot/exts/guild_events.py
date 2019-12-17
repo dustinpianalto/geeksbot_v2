@@ -27,7 +27,7 @@ class GuildEvents(commands.Cog):
                     'id': str(role.id),
                     'role_type': 100 if role == admin_role else 0
                 }
-                role_resp = await self.bot.aio_session.post(f'{self.bot.api_base}/guilds/{guild.id}/roles',
+                role_resp = await self.bot.aio_session.post(f'{self.bot.api_base}/guilds/{guild.id}/roles/',
                                                             headers=self.bot.auth_header,
                                                             json=role_dict)
                 guild_logger.info(f'Role Added {role.name}: {await role_resp.json()}')
