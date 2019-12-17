@@ -284,6 +284,7 @@ class Rcon(commands.Cog):
                         f'{self.bot.api_base}/rcon/{ctx.guild.id}/{server_name}/listplayers',
                         headers=self.bot.auth_header
                     )
+                    rcon_log.info(resp.status)
                     if resp.status == 200 or resp.status == 204:
                         message = '\n'.join(await resp.json())
                         await ctx.channel.trigger_typing()
