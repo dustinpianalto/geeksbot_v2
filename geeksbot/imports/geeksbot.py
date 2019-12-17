@@ -39,7 +39,7 @@ class Geeksbot(commands.Bot):
         self.git_url = 'https://github.com/dustinpianalto/geeksbot_v2'
         self.load_default_extensions()
         self.owner_id = 351794468870946827
-        self.success_emoji = '\N{WHITE CHECK MARK}'
+        self.success_emoji = '\N{WHITE HEAVY CHECK MARK}'
         self.book_emojis = {
                             'unlock': '🔓',
                             'start': '⏮',
