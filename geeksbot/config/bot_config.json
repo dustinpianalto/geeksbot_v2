@@ -4,6 +4,8 @@
         "exec",
         "message_events",
         "user_events",
+        "guild_events",
+        "command_events",
         "tickets",
         "inspect"
     ]
