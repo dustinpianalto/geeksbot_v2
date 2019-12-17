@@ -408,6 +408,20 @@ class Rcon(commands.Cog):
 
         else:
             await ctx.send('I need a list of members to whitelist.')
+
+    @commands.command(name="add_steamid", aliases=['steamid'])
+    @checks.is_moderator()
+    async def _add_steam_id_to_user(self, ctx, member: discord.Member, steam_id: int):
+        if isinstance(member, discord.Member):
+            resp = await self.bot.aio_session.patch(f'{self.bot.api_base}/users/{member.id}/',
+                                                    headers=self.bot.auth_header,
+                                                    json={'steam_id': steam_id})
+            if resp.status == 200:
+                await ctx.message.add_reaction(self.bot.success_emoji)
+                return
+            await ctx.send('I couldn\'t update that user for some reason.')
+            return
+        await ctx.send('Are you sure that is a valid user?')
     #
     # @commands.command(name='new_patron')
     # @commands.guild_only()
