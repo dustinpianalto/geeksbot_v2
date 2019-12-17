@@ -14,6 +14,7 @@ class CommandEvents(commands.Cog):
         self.bot = bot
 
     # noinspection PyMethodMayBeStatic
+    @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         pag = Paginator(ctx.bot, embed=True)
         pag.set_embed_meta(color=self.bot.error_color)
