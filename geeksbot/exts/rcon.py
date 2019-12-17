@@ -254,12 +254,16 @@ class Rcon(commands.Cog):
                 f'{self.bot.api_base}/rcon/{ctx.guild.id}/{server_name}/listplayers',
                 headers=self.bot.auth_header
             )
-            rcon_log.info(resp.status)
-            if resp.status == 200 or resp.status == 204:
+            if resp.status == 200:
                 message = '\n'.join(await resp.json())
                 await ctx.channel.trigger_typing()
                 await msg.delete()
                 await ctx.send(f'**Players currently on the {server_name} server:**\n{message}')
+                return
+            elif resp.status == 204:
+                message = (await resp.json()).get('details')
+                await msg.delete()
+                await ctx.send(f'**{server_name}** {message}')
                 return
             elif resp.status < 500:
                 message = (await resp.json()).get('details', 'There was a problem. Please try again')
