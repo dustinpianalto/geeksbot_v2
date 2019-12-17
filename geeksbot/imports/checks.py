@@ -14,7 +14,7 @@ def is_moderator():
     async def predicate(ctx):
         resp = await ctx.bot.aio_session.get(f'{ctx.bot.api_base}/guilds/{ctx.guild.id}/roles/moderator/',
                                              headers=ctx.bot.auth_header)
-        checks_logger.info(resp.status)
+        checks_logger.info(await resp.json())
         if resp.status == 200:
             mod_roles = await resp.json()
             for role in mod_roles:
