@@ -21,7 +21,7 @@ class GuildEvents(commands.Cog):
                                                headers=self.bot.auth_header,
                                                json=default_config)
         guild_logger.info(f'Guild Joined {guild.name}: {await resp.json()}')
-        if resp.status == 200:
+        if resp.status == 201:
             for role in guild.roles:
                 role_dict = {
                     'id': str(role.id),
