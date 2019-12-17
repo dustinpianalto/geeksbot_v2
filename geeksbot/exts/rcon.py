@@ -235,6 +235,7 @@ class Rcon(commands.Cog):
 
     @commands.command()
     @commands.guild_only()
+    @checks.is_moderator()
     async def listplayers(self, ctx, *, server_name=None):
         """Lists the players currently connected to the specified ARK server.
         The specified server must already be in the current guild\'s configuration.
@@ -245,66 +246,62 @@ class Rcon(commands.Cog):
         first_last
         "first last"
         To view all the valid ARK servers for this guild see list_ark_servers."""
-        if await checks.is_rcon_admin(self.bot, ctx):
-
-            if server_name:
-                server_name = server_name.replace('_', ' ').title()
-                msg = await ctx.send(f'**Getting Data for the {server_name} server**')
+        if server_name:
+            server_name = server_name.replace('_', ' ').title()
+            msg = await ctx.send(f'**Getting Data for the {server_name} server**')
+            await ctx.channel.trigger_typing()
+            resp = await self.bot.aio_session.get(
+                f'{self.bot.api_base}/rcon/{ctx.guild.id}/{server_name}/listplayers',
+                headers=self.bot.auth_header
+            )
+            if resp.status == 200:
+                message = '\n'.join(await resp.json())
                 await ctx.channel.trigger_typing()
-                resp = await self.bot.aio_session.get(
-                    f'{self.bot.api_base}/rcon/{ctx.guild.id}/{server_name}/listplayers',
-                    headers=self.bot.auth_header
-                )
-                if resp.status == 200:
-                    message = '\n'.join(await resp.json())
-                    await ctx.channel.trigger_typing()
-                    await msg.delete()
-                    await ctx.send(f'**Players currently on the {server_name} server:**\n{message}')
-                    return
-                elif resp.status < 500:
-                    message = (await resp.json()).get('details', 'There was a problem. Please try again')
-                else:
-                    message = "There was an error on my server. I have notified the maintainers."
-                await ctx.send(message)
+                await msg.delete()
+                await ctx.send(f'**Players currently on the {server_name} server:**\n{message}')
+                return
+            elif resp.status < 500:
+                message = (await resp.json()).get('details', 'There was a problem. Please try again')
             else:
-                futures = []
-                resp = await self.bot.aio_session.get(
-                    f'{self.bot.api_base}/rcon/{ctx.guild.id}/',
-                    headers=self.bot.auth_header
-                )
-                if resp.status != 200:
-                    await ctx.send('There was a problem getting the servers for this guild.')
-                    return
-                guild_servers = await resp.json()
-                for server in guild_servers:
-                    msg = await ctx.send(f'**Getting Data for the {server["name"]} server**')
-
-                    # noinspection PyShadowingNames
-                    async def _listplayers(server_name: str, msg: discord.Message):
-                        resp = await self.bot.aio_session.get(
-                            f'{self.bot.api_base}/rcon/{ctx.guild.id}/{server_name}/listplayers',
-                            headers=self.bot.auth_header
-                        )
-                        if resp.status == 200:
-                            message = '\n'.join(await resp.json())
-                            await ctx.channel.trigger_typing()
-                            await msg.delete()
-                            await ctx.send(f'**Players currently on the {server_name} server:**\n{message}')
-                            return
-                        elif resp.status < 500:
-                            message = f'Error getting data for {server_name}' + \
-                                      (await resp.json()).get('details', 'Please try again')
-                        else:
-                            message = "There was an error on my server. I have notified the maintainers."
-                        await ctx.send(message)
-
-                    futures.append(_listplayers(msg=msg, server_name=server['name']))
-                if futures:
-                    asyncio.ensure_future(asyncio.gather(*futures))
-                else:
-                    await ctx.send('There are no available servers for this guild.')
+                message = "There was an error on my server. I have notified the maintainers."
+            await ctx.send(message)
         else:
-            await ctx.send(f'You are not authorized to run this command.')
+            futures = []
+            resp = await self.bot.aio_session.get(
+                f'{self.bot.api_base}/rcon/{ctx.guild.id}/',
+                headers=self.bot.auth_header
+            )
+            if resp.status != 200:
+                await ctx.send('There was a problem getting the servers for this guild.')
+                return
+            guild_servers = await resp.json()
+            for server in guild_servers:
+                msg = await ctx.send(f'**Getting Data for the {server["name"]} server**')
+
+                # noinspection PyShadowingNames
+                async def _listplayers(server_name: str, msg: discord.Message):
+                    resp = await self.bot.aio_session.get(
+                        f'{self.bot.api_base}/rcon/{ctx.guild.id}/{server_name}/listplayers',
+                        headers=self.bot.auth_header
+                    )
+                    if resp.status == 200:
+                        message = '\n'.join(await resp.json())
+                        await ctx.channel.trigger_typing()
+                        await msg.delete()
+                        await ctx.send(f'**Players currently on the {server_name} server:**\n{message}')
+                        return
+                    elif resp.status < 500:
+                        message = f'Error getting data for {server_name}' + \
+                                  (await resp.json()).get('details', 'Please try again')
+                    else:
+                        message = "There was an error on my server. I have notified the maintainers."
+                    await ctx.send(message)
+
+                futures.append(_listplayers(msg=msg, server_name=server['name']))
+            if futures:
+                asyncio.ensure_future(asyncio.gather(*futures))
+            else:
+                await ctx.send('There are no available servers for this guild.')
 
     # @commands.command()
     # @commands.guild_only()
