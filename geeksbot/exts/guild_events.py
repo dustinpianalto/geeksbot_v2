@@ -16,7 +16,7 @@ class GuildEvents(commands.Cog):
             'id': guild.id
         }
         admin_role = guild.roles[-1] if len(guild.roles) > 1 else 0
-        resp = await self.bot.aio_session.post(f'{self.bot.api_base}/guilds',
+        resp = await self.bot.aio_session.post(f'{self.bot.api_base}/guilds/',
                                                headers=self.bot.auth_header,
                                                json=default_config)
         guild_logger.info(f'Guild Joined {guild.name}: {await resp.json()}')
@@ -34,7 +34,7 @@ class GuildEvents(commands.Cog):
         await guild.me.edit(nick=f'[{self.bot.default_prefix}] Geeksbot')
 
     async def on_guild_remove(self, guild):
-        resp = await self.bot.aio_session.delete(f'{self.bot.api_base}/guilds/{guild.id}',
+        resp = await self.bot.aio_session.delete(f'{self.bot.api_base}/guilds/{guild.id}/',
                                                  headers=self.bot.auth_header)
         if resp.status == 200:
             guild_logger.info(f'Left Guild {guild.name}: {await resp.json()}')
