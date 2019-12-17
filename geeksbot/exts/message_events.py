@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 
 
@@ -17,7 +17,7 @@ class MessageEvents(commands.Cog):
             'author': message.author.id,
             'guild': message.guild.id,
             'channel': message.channel.id,
-            'created_at': message.created_at.timestamp(),
+            'created_at': message.created_at.replace(tzinfo=timezone.utc),
             'tagged_everyone': message.mention_everyone,
             'content': message.content,
             'embeds': [e.to_dict() for e in message.embeds],
