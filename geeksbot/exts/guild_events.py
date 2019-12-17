@@ -31,6 +31,18 @@ class GuildEvents(commands.Cog):
                                                             headers=self.bot.auth_header,
                                                             json=role_dict)
                 guild_logger.info(f'Role Added {role.name}: {await role_resp.json()}')
+            for channel in guild.channels:
+                channel_dict = {
+                    'id': channel.id,
+                    'guild': guild.id,
+                    'default': False,
+                    'new_patron': False,
+                    'admin': False
+                }
+                channel_resp = await self.bot.aio_session.post(f'{self.bot.api_base}/channels/',
+                                                               headers=self.bot.auth_header,
+                                                               json=channel_dict)
+                guild_logger.info(f'Channel Added {channel.name}: {await channel_resp.json()}')
         guild_logger.info(f'All Entries Created for {guild.name}')
         await guild.me.edit(nick=f'[{self.bot.default_prefix}] Geeksbot')
 
