@@ -1,9 +1,10 @@
 import discord
 from discord.ext import commands
+from discord.ext.commands import Greedy
 import logging
 from datetime import datetime
 import asyncio
-import typing
+from typing import Union
 from geeksbot.imports import arcon
 from geeksbot.imports import utils
 from geeksbot.imports import checks
@@ -251,7 +252,7 @@ class Rcon(commands.Cog):
             msg = await ctx.send(f'**Getting Data for the {server_name} server**')
             await ctx.channel.trigger_typing()
             resp = await self.bot.aio_session.get(
-                f'{self.bot.api_base}/rcon/{ctx.guild.id}/{server_name}/listplayers',
+                f'{self.bot.api_base}/rcon/{ctx.guild.id}/{server_name}/listplayers/',
                 headers=self.bot.auth_header
             )
             if resp.status == 200:
@@ -281,7 +282,7 @@ class Rcon(commands.Cog):
                 # noinspection PyShadowingNames
                 async def _listplayers(server_name: str, msg: discord.Message):
                     resp = await self.bot.aio_session.get(
-                        f'{self.bot.api_base}/rcon/{ctx.guild.id}/{server_name}/listplayers',
+                        f'{self.bot.api_base}/rcon/{ctx.guild.id}/{server_name}/listplayers/',
                         headers=self.bot.auth_header
                     )
                     if resp.status == 200:
@@ -357,68 +358,56 @@ class Rcon(commands.Cog):
     #             await ctx.send('{0} is not in my configuration.'.format(server))
     #     else:
     #         await ctx.send(f'You are not authorized to run this command.')
-    #
-    # @staticmethod
-    # async def _whitelist(*, server_name: str, server_con: arcon.ARKServer,
-    #                      player: patron.Patron, message: discord.Message, message_lock: asyncio.Lock):
-    #     result = await server_con.whitelist(player.steam_id)
-    #     if result == f'{player.steam_id} Allow Player To Join No Check':
-    #         with await message_lock:
-    #             message = await message.channel.get_message(message.id)
-    #             await message.edit(content=f'{message.content}\n{server_name.replace("_", " ").title()}'
-    #                                        f' Done!')
-    #     else:
-    #         with await message_lock:
-    #             message = await message.channel.get_message(message.id)
-    #             await message.edit(content=f'{message.content}\n{server_name.replace("_", " ").title()}'
-    #                                        f' Failed!')
-    #
-    # @commands.command(name='add_whitelist')
-    # @commands.guild_only()
-    # async def add_whitelist(self, ctx, *, members: str=None):
-    #     if await checks.is_rcon_admin(self.bot, ctx):
-    #         if members:
-    #             futures = []
-    #             members = members.replace(', ', '').split(',')
-    #             converter = commands.MemberConverter()
-    #             for member in members:
-    #                 try:
-    #                     member = await converter.convert(ctx, member)
-    #                 except commands.errors.BadArgument:
-    #                     try:
-    #                         member = int(member)
-    #                     except ValueError:
-    #                         raise ValueError(f'Member {member} can\'t be found and is not a valid Steam64 ID.')
-    #
-    #                 if isinstance(member, discord.Member):
-    #                     player = await patron.Patron.from_name(self.bot, discord_name=member)
-    #                 else:
-    #                     player = await patron.Patron.from_id(self.bot, steam_id=member)
-    #
-    #                 if player == -1:
-    #                     await ctx.send(f'{ctx.author.mention} I Cannot find a player with a discord name/steam id of '
-    #                                    f'{member} in the current whitelist sheet. Did you forget to '
-    #                                    f'move them to the correct sheet?')
-    #                 else:
-    #                     rcon_connections: dict = await self.get_rcon_server_by_name(guild_config=ctx.guild_config,
-    #                                                                                 name='*')
-    #                     if rcon_connections:
-    #                         msg = await ctx.send(f'**Whitelisting {player.discord_name} on all servers**')
-    #                         lock = asyncio.Lock()
-    #                         for server_name, server_con in rcon_connections.items():
-    #                             futures.append(self._whitelist(server_name=server_name, server_con=server_con,
-    #                                                            player=player, message=msg, message_lock=lock))
-    #
-    #             if futures:
-    #                 asyncio.ensure_future(asyncio.gather(*futures), loop=self.bot.loop)
-    #             else:
-    #                 await ctx.send('Nothing for me to do')
-    #                 return
-    #
-    #         else:
-    #             await ctx.send('I need a list of members to whitelist.')
-    #     else:
-    #         await ctx.send(f'You are not authorized to run this command.')
+
+    @staticmethod
+    async def _whitelist(ctx, *, server_name: str, discord_id: str):
+        data = {
+            'discord_id': discord_id
+        }
+        resp = await ctx.bot.aio_session.post(f'{ctx.bot.api_base}/rcon/{ctx.guild.id}/{server_name}/whitelist/',
+                                              headers=ctx.bot.auth_header,
+                                              json=data)
+        return resp
+
+    @commands.command(name='add_whitelist')
+    @commands.guild_only()
+    @checks.is_admin()
+    async def add_whitelist(self, ctx, members: Greedy[discord.Member] = None):
+        if members:
+            resp = await self.bot.aio_session.get(
+                f'{self.bot.api_base}/rcon/{ctx.guild.id}/',
+                headers=self.bot.auth_header
+            )
+            if resp.status != 200:
+                await ctx.send('There was a problem getting the servers for this guild.')
+                return
+            guild_servers = await resp.json()
+            for member in members:
+                await ctx.send(f'Whitelisting {member.display_name} on all servers:')
+                e = False
+                for server in guild_servers:
+                    suc = await self._whitelist(ctx,
+                                                server_name=server["name"],
+                                                discord_id=str(member.id)
+                                                )
+                    if suc.status == 400:
+                        error = (await suc.json())['details']
+                        await ctx.send(error)
+                        e = True
+                        break
+                    elif suc.status in (404, 408):
+                        msg = (await suc.json())['details']
+                        e = True
+                    else:
+                        msg = '\n'.join(await suc.json())
+                    await ctx.send(f'{server["name"]}: {msg}')
+                if e:
+                    await ctx.send(f'{ctx.author.mention} There were errors processing {member.display_name}.')
+                else:
+                    await ctx.send(f'{member.display_name} Done.')
+
+        else:
+            await ctx.send('I need a list of members to whitelist.')
     #
     # @commands.command(name='new_patron')
     # @commands.guild_only()
