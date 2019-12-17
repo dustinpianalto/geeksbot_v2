@@ -17,7 +17,7 @@ class MessageEvents(commands.Cog):
             'author': message.author.id,
             'guild': message.guild.id,
             'channel': message.channel.id,
-            'created_at': message.created_at.replace(tzinfo=timezone.utc),
+            'created_at': message.created_at.timestamp(),
             'tagged_everyone': message.mention_everyone,
             'content': message.content,
             'embeds': [e.to_dict() for e in message.embeds],
