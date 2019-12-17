@@ -10,6 +10,7 @@ class GuildEvents(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @commands.Cog.listener()
     async def on_guild_join(self, guild):
         default_config = {
             'prefixes': [self.bot.default_prefix],
@@ -33,6 +34,7 @@ class GuildEvents(commands.Cog):
         guild_logger.info(f'All Entries Created for {guild.name}')
         await guild.me.edit(nick=f'[{self.bot.default_prefix}] Geeksbot')
 
+    @commands.Cog.listener()
     async def on_guild_remove(self, guild):
         resp = await self.bot.aio_session.delete(f'{self.bot.api_base}/guilds/{guild.id}/',
                                                  headers=self.bot.auth_header)
