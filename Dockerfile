@@ -36,7 +36,14 @@ COPY requirements/geeksbot.txt .
 RUN pip install -r production.txt
 RUN pip install -r geeksbot.txt
 
-COPY .env .
+ENV REDIS_DB 0
+ENV REDIS_HOST ip-10-0-0-4.ec2.internal
+ENV REDIS_PORT 6379
+ENV REDIS_PASSWORD EUZ9QWkaFhMM
+ENV USE_DOCKER yes
+ENV DISCORD_DEFAULT_PREFIX g$
+ENV PYTHONPATH /code
+
 COPY entrypoint .
 
 CMD ["./entrypoint"]
