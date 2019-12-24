@@ -21,7 +21,7 @@ class Admin(commands.Cog):
         with open(f'{self.bot.config_dir}/restart', 'w') as f:
             f.write(f'1\n{ctx.channel.id}')
         admin_logger.info("Rebooting")
-        sys.exit()
+        await self.bot.close()
 
     # TODO Fix view_code
     @commands.command(hidden=True)

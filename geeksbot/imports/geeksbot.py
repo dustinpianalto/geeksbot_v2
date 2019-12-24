@@ -146,11 +146,6 @@ class Geeksbot(commands.Bot):
         return ctx
 
     async def close(self):
-        try:
-            await self.aio_session.close()
-            await super().close()
-            sys.exit()
-        except Exception:
-            geeksbot_logger.exception(f"Error Closing Connections.")
+        await self.aio_session.close()
+        await super().close()
         geeksbot_logger.info('Exiting...')
-
