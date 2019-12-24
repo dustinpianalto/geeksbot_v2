@@ -4,8 +4,6 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
-source .env
-
 # Check Redis is up
 
 # Check Web API is up with simple curl of hostcheck
