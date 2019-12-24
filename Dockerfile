@@ -29,11 +29,11 @@ RUN pip install virtualenv
 
 WORKDIR /code
 
-COPY /code/geeksbot_v2/requirements/base.txt .
-COPY /code/geeksbot_v2/requirements/production.txt .
-COPY /code/geeksbot_v2/requirements/geeksbot.txt .
-COPY /code/geeksbot_v2/.env .
-COPY /code/geeksbot_v2/entrypoint .
+COPY requirements/base.txt .
+COPY requirements/production.txt .
+COPY requirements/geeksbot.txt .
+COPY .env .
+COPY entrypoint .
 
 RUN pip install -r production.txt
 RUN pip install -r geeksbot.txt
