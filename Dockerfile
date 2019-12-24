@@ -18,7 +18,7 @@ RUN apk update && \
         # https://docs.djangoproject.com/en/dev/ref/django-admin/#dbshell
         && apk add postgresql-client \
         # Install git
-        && apk add git
+        && apk add git openssh-client
 
 RUN mkdir /code
 WORKDIR /code

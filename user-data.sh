@@ -9,4 +9,4 @@ cd /code || exit
 git clone git@github.com:dustinpianalto/geeksbot_v2.git
 cd geeksbot_v2 || exit
 docker build . -t geeksbot || exit
-docker run -d -v /code/geeksbot_v2:/code --name geeksbot --restart always geeksbot:latest || exit
+docker run -d -v /code/geeksbot_v2:/code -v /root/.ssh:/root/.ssh:ro --name geeksbot --restart always geeksbot:latest || exit
