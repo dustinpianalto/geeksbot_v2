@@ -21,8 +21,7 @@ class Admin(commands.Cog):
         with open(f'/mnt/{self.bot.SECRETS_BUCKET_NAME}/restart', 'w') as f:
             f.write(f'1\n{ctx.channel.id}')
         admin_logger.info("Rebooting")
-        # noinspection PyProtectedMember
-        os._exit(1)
+        await self.bot.close()
 
     # TODO Fix view_code
     @commands.command(hidden=True)
