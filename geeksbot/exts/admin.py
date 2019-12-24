@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import logging
 import inspect
-import os
+import sys
 import psutil
 import math
 from geeksbot.imports import utils
@@ -21,7 +21,7 @@ class Admin(commands.Cog):
         with open(f'{self.bot.config_dir}/restart', 'w') as f:
             f.write(f'1\n{ctx.channel.id}')
         admin_logger.info("Rebooting")
-        await self.bot.close()
+        sys.exit()
 
     # TODO Fix view_code
     @commands.command(hidden=True)
