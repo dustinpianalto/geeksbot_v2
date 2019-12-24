@@ -78,7 +78,7 @@ async def on_ready():
     channel = guild.get_channel(404569276012560386)
     await channel.send('Geeksbot v2 Running')
     logger.info('Done loading, Geeksbot is active.')
-    with open(f'{bot.config_dir}restart') as f:
+    with open(f'{bot.config_dir}/restart') as f:
         reboot = f.readlines()
     if int(reboot[0]) == 1:
         await bot.get_channel(int(reboot[1])).send('Restart Finished.')
