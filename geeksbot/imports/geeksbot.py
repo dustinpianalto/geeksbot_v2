@@ -1,5 +1,5 @@
 import os
-import sys
+import time
 import json
 from concurrent import futures
 from multiprocessing import Pool
@@ -148,4 +148,7 @@ class Geeksbot(commands.Bot):
     async def close(self):
         await self.aio_session.close()
         await super().close()
+        time.sleep(5)
         geeksbot_logger.info('Exiting...')
+        # noinspection PyProtectedMember
+        os._exit(1)
