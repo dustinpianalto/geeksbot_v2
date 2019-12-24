@@ -17,6 +17,8 @@ RUN apk update && \
         && apk add gettext \
         # https://docs.djangoproject.com/en/dev/ref/django-admin/#dbshell
         && apk add postgresql-client
+        # Install git
+        && apk add git
 
 RUN mkdir /code
 WORKDIR /code
