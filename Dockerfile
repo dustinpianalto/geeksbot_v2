@@ -32,10 +32,11 @@ WORKDIR /code
 COPY requirements/base.txt .
 COPY requirements/production.txt .
 COPY requirements/geeksbot.txt .
-COPY .env .
-COPY entrypoint .
 
 RUN pip install -r production.txt
 RUN pip install -r geeksbot.txt
+
+COPY .env .
+COPY entrypoint .
 
 CMD ["./entrypoint"]
