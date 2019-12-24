@@ -82,7 +82,7 @@ async def on_ready():
         reboot = f.readlines()
     if int(reboot[0]) == 1:
         await bot.get_channel(int(reboot[1])).send('Restart Finished.')
-    with open(f'{bot.config_dir}restart', 'w') as f:
+    with open(f'{bot.config_dir}/restart', 'w') as f:
         f.write('0')
 
 bot.run(bot.token)
