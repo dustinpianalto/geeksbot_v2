@@ -24,8 +24,10 @@ class Geeksbot(commands.Bot):
         self.config_dir = 'geeksbot/config'
         self.config_file = 'bot_config.json'
         self.extension_dir = 'exts'
-        self.cache = redis.Redis(host=os.environ['REDIS_HOST'], port=os.environ['REDIS_PORT'], db=1, charset="utf-8", decode_responses=True)
-        self.api_token = os.environ['API_TOKEN']
+        self.cache = redis.Redis(host=os.environ['REDIS_HOST'], port=os.environ['REDIS_PORT'], db=os.environ['REDIS_DB'], charset="utf-8", decode_responses=True)
+        settings_cache = redis.Redis(host=os.environ['REDIS_HOST'], port=os.environ['REDIS_PORT'], db=1, charset="utf-8", decode_responses=True)
+        self.token = settings_cache.get('DISCORD_TOKEN')
+        self.api_token = settings_cache.get('API_TOKEN')
         self.aio_session = aiohttp.ClientSession(loop=self.loop)
         self.auth_header = {'Authorization': f'Token {self.api_token}'}
         self.api_base = 'https://geeksbot.app/api'

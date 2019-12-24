@@ -85,4 +85,4 @@ async def on_ready():
     with open(f'{bot.config_dir}restart', 'w') as f:
         f.write('0')
 
-bot.run(os.environ['TOKEN'])
+bot.run(bot.token)

@@ -331,6 +331,5 @@ geeksbot_v2/media/
 
 
 .ipython/
-.env
 .envs/*
 !.envs/.local/
