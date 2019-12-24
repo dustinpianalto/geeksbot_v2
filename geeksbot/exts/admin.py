@@ -56,10 +56,7 @@ class Admin(commands.Cog):
     @commands.command()
     @commands.cooldown(1, 5, type=commands.BucketType.user)
     async def ping(self, ctx):
-        """Check the Bot\'s connection to Discord
-
-        For more detailed information set the <mode> as comp and it will test the ping
-        <count> number of times."""
+        """Check the Bot\'s connection to Discord"""
         em = discord.Embed(style='rich',
                            title=f'Pong 🏓',
                            color=discord.Colour.green()
