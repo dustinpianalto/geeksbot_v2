@@ -146,8 +146,8 @@ class Geeksbot(commands.Bot):
 
     async def close(self):
         try:
-            await super().close()
             await self.aio_session.close()
+            await super().close()
         except Exception:
             geeksbot_logger.exception(f"Error Closing Connections.")
         geeksbot_logger.info('Exiting...')
