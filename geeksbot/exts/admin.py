@@ -18,7 +18,7 @@ class Admin(commands.Cog):
     @commands.is_owner()
     async def reboot(self, ctx):
         await ctx.send('Geeksbot is restarting.')
-        with open(f'/mnt/{self.bot.SECRETS_BUCKET_NAME}/restart', 'w') as f:
+        with open(f'/mnt/{self.bot.config_dir}/restart', 'w') as f:
             f.write(f'1\n{ctx.channel.id}')
         admin_logger.info("Rebooting")
         await self.bot.close()
