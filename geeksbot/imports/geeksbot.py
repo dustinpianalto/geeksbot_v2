@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 from concurrent import futures
 from multiprocessing import Pool
@@ -148,6 +149,7 @@ class Geeksbot(commands.Bot):
         try:
             await self.aio_session.close()
             await super().close()
+            sys.exit()
         except Exception:
             geeksbot_logger.exception(f"Error Closing Connections.")
         geeksbot_logger.info('Exiting...')
