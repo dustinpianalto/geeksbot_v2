@@ -33,9 +33,9 @@ WORKDIR /code
 
 COPY requirements/base.txt .
 COPY requirements/production.txt .
-COPY requirements/geeksbot.txt .
-
 RUN pip install -r production.txt
+
+COPY requirements/geeksbot.txt .
 RUN pip install -r geeksbot.txt
 
 ENV REDIS_DB 0
