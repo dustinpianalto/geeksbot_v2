@@ -8,6 +8,7 @@
         "command_events",
         "tickets",
         "inspect",
-        "rcon"
+        "rcon",
+        "git"
     ]
 }
