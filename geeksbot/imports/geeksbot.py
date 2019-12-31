@@ -12,6 +12,7 @@ import discord
 from discord.ext import commands
 from discord.ext.commands.context import Context
 from geeksbot.imports.strings import MyStringView
+from geeksbot.imports.geeksbot_api import GeeksbotAPI
 
 geeksbot_logger = logging.getLogger("Geeksbot")
 
@@ -45,8 +46,8 @@ class Geeksbot(commands.Bot):
         self.token = self.settings_cache.get("DISCORD_TOKEN")
         self.api_token = self.settings_cache.get("API_TOKEN")
         self.aio_session = aiohttp.ClientSession(loop=self.loop)
-        self.auth_header = {"Authorization": f"Token {self.api_token}"}
         self.api_base = "https://geeksbot.app/api"
+        self.api = GeeksbotAPI(self.api_token, self.api_base, self.loop)
         with open(f"{self.config_dir}/{self.config_file}") as f:
             self.bot_config = json.load(f)
         self.embed_color = discord.Colour.from_rgb(49, 107, 111)
