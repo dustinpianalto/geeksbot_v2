@@ -2,7 +2,10 @@ import discord
 from discord.ext import commands
 import asyncio
 
+
 class Fun(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
 
     @commands.command(name='explode', aliases=['splode'])
     async def explode_user(self, ctx, member: discord.Member=None):
