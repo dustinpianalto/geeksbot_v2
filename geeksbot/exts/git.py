@@ -9,7 +9,7 @@ from geeksbot.imports.utils import Book, Paginator, run_command
 git_log = logging.getLogger("git")
 
 
-class Git:
+class Git(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 

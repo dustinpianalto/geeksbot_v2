@@ -32,6 +32,52 @@ def process_snowflake(snowflake: int) -> typing.Tuple[datetime, int, int, int]:
     return creation_time, worker_id, process_id, counter
 
 
+# noinspection PyDefaultArgument
+def to_list_of_str(items, out: list=list(), level=1, recurse=0):
+    # noinspection PyShadowingNames
+    def rec_loop(item, key, out, level):
+        quote = '"'
+        if type(item) == list:
+            out.append(f'{"    "*level}{quote+key+quote+": " if key else ""}[')
+            new_level = level + 1
+            out = to_list_of_str(item, out, new_level, 1)
+            out.append(f'{"    "*level}]')
+        elif type(item) == dict:
+            out.append(f'{"    "*level}{quote+key+quote+": " if key else ""}{{')
+            new_level = level + 1
+            out = to_list_of_str(item, out, new_level, 1)
+            out.append(f'{"    "*level}}}')
+        else:
+            out.append(f'{"    "*level}{quote+key+quote+": " if key else ""}{repr(item)},')
+
+    if type(items) == list:
+        if not recurse:
+            out = list()
+            out.append('[')
+        for item in items:
+            rec_loop(item, None, out, level)
+        if not recurse:
+            out.append(']')
+    elif type(items) == dict:
+        if not recurse:
+            out = list()
+            out.append('{')
+        for key in items:
+            rec_loop(items[key], key, out, level)
+        if not recurse:
+            out.append('}')
+
+    return out
+
+
+def format_output(text):
+    if type(text) == list:
+        text = to_list_of_str(text)
+    elif type(text) == dict:
+        text = to_list_of_str(text)
+    return text
+
+
 async def run_command(args):
     # Create subprocess
     process = await asyncio.create_subprocess_shell(
