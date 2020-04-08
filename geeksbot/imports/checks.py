@@ -34,3 +34,10 @@ def is_admin():
                     return True
         return False
     return discord.ext.commands.check(predicate)
+
+
+def is_production():
+    def predicate(ctx):
+        return not os.environ['DEBUG']
+    return discord.ext.commands.check(predicate)
+
