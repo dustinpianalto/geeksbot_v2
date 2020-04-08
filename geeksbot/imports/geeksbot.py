@@ -68,6 +68,16 @@ class Geeksbot(commands.Bot):
             "end": "⏭",
             "close": "🇽",
         }
+        self.unicode_emojis = {
+            'x': '❌',
+            'y': '✅',
+            'poop': '💩',
+            'boom': '💥',
+            'left_fist': '🤛',
+            'lock': '🔒',
+            'persons': '👥',
+            'robot': '🤖',
+        }
 
     async def load_ext(self, mod):
         try:
