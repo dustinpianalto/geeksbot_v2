@@ -45,6 +45,7 @@ class Geeksbot(commands.Bot):
         )
         self.token = self.settings_cache.get("DISCORD_TOKEN")
         self.api_token = self.settings_cache.get("API_TOKEN")
+        self.auth_header = {"Authorization": f"Token {self.api_token}"}
         self.aio_session = aiohttp.ClientSession(loop=self.loop)
         self.api_base = "https://geeksbot.app/api"
         self.api = GeeksbotAPI(self.api_token, self.api_base, self.loop)
