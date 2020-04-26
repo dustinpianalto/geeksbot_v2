@@ -248,6 +248,10 @@ class Tickets(commands.Cog):
                         pag.add(f'{author.display_name}: {comment["content"]}', keep_intact=True)
                 else:
                     pag.add('No Comments')
+
+                if request.get('completed'):
+                    closer = ctx.guild.get_memeber(int(request.get('completed_by_id')))
+                    pag.add(f'Closed By: {closer.username}#{closer.discriminator}\n{request.get("completed_message")}')
                 book = Book(pag, (None, ctx.channel, self.bot, ctx.message))
                 await book.create_book()
             else:
