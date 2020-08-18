@@ -575,11 +575,11 @@ class Rcon(commands.Cog):
             resp = '\n'.join(await suc.json())
         if resp == 'Server received, But no response!!':
             with await message_lock:
-                msg = await msg.channel.get_message(msg.id)
+                msg = await msg.channel.fetch_message(msg.id)
                 await msg.edit(content=f'{msg.content}\n{server_name} Success')
         else:
             with await message_lock:
-                msg = await msg.channel.get_message(msg.id)
+                msg = await msg.channel.fetch_message(msg.id)
                 await msg.edit(content=f'{msg.content}\n{server_name} Failed')
 
     @commands.group(case_insensitive=True)
