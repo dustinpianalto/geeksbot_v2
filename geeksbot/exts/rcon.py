@@ -601,6 +601,7 @@ class Rcon(commands.Cog):
             # noinspection PyShadowingNames
 
             futures = []
+            error = False
             if server_name == 'all':
                 message = ''.join(i for i in f'{ctx.author.display_name}: {message}' if ord(i) < 128)
                 msg = await ctx.send(f'Broadcasting "{message}" to all servers.')
@@ -618,8 +619,10 @@ class Rcon(commands.Cog):
                         break
                 else:
                     await ctx.send('That server is not configured in this guild.')
-            self.bot.loop.create_task(asyncio.gather(*futures))
-            await ctx.message.add_reaction('✅')
+                    error = True
+            if not error:
+                await asyncio.gather(*futures, loop=self.bot.loop)
+                await ctx.message.add_reaction('✅')
 
         else:
             await ctx.send('You must include a message with this command.')
