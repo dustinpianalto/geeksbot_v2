@@ -613,6 +613,7 @@ class Rcon(commands.Cog):
             else:
                 for server in guild_servers:
                     if server["name"].lower().replace(" ", "_") == server_name.lower():
+                        message = ''.join(i for i in f'{ctx.author.display_name}: {message}' if ord(i) < 128)
                         msg = await ctx.send(f'Broadcasting "{message}" to {server["name"]}.')
                         lock = asyncio.Lock()
                         futures.append(self._broadcast(message=message, server_name=server["name"],
