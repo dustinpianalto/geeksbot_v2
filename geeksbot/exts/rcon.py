@@ -584,47 +584,45 @@ class Rcon(commands.Cog):
 
     @commands.group(case_insensitive=True)
     @commands.guild_only()
+    @checks.is_moderator()
     async def broadcast(self, ctx, server_name, *, message=None):
         """Sends a broadcast message to all servers in the guild config.
         The message will be prefixed with the Discord name of the person running the command.
         Will print "Success" for each server once the broadcast is sent."""
-        if await checks.is_rcon_admin(self.bot, ctx):
-            if message is not None:
-                resp = await self.bot.aio_session.get(
-                    f'{self.bot.api_base}/rcon/{ctx.guild.id}/',
-                    headers=self.bot.auth_header
-                )
-                if resp.status != 200:
-                    await ctx.send('There was a problem getting the servers for this guild.')
-                    return
-                guild_servers = await resp.json()
-                # noinspection PyShadowingNames
+        if message is not None:
+            resp = await self.bot.aio_session.get(
+                f'{self.bot.api_base}/rcon/{ctx.guild.id}/',
+                headers=self.bot.auth_header
+            )
+            if resp.status != 200:
+                await ctx.send('There was a problem getting the servers for this guild.')
+                return
+            guild_servers = await resp.json()
+            # noinspection PyShadowingNames
 
-                futures = []
-                if server_name == 'all':
-                    message = ''.join(i for i in f'{ctx.author.display_name}: {message}' if ord(i) < 128)
-                    msg = await ctx.send(f'Broadcasting "{message}" to all servers.')
-                    lock = asyncio.Lock()
-                    for server in guild_servers:
+            futures = []
+            if server_name == 'all':
+                message = ''.join(i for i in f'{ctx.author.display_name}: {message}' if ord(i) < 128)
+                msg = await ctx.send(f'Broadcasting "{message}" to all servers.')
+                lock = asyncio.Lock()
+                for server in guild_servers:
+                    futures.append(self._broadcast(message=message, server_name=server["name"],
+                                                   msg=msg, message_lock=lock))
+            else:
+                for server in guild_servers:
+                    if server["name"].lower().replace(" ", "_") == server_name.lower():
+                        msg = await ctx.send(f'Broadcasting "{message}" to {server["name"]}.')
+                        lock = asyncio.Lock()
                         futures.append(self._broadcast(message=message, server_name=server["name"],
                                                        msg=msg, message_lock=lock))
+                        break
                 else:
-                    for server in guild_servers:
-                        if server["name"].lower().replace(" ", "_") == server_name.lower():
-                            msg = await ctx.send(f'Broadcasting "{message}" to {server["name"]}.')
-                            lock = asyncio.Lock()
-                            futures.append(self._broadcast(message=message, server_name=server["name"],
-                                                           msg=msg, message_lock=lock))
-                            break
-                    else:
-                        await ctx.send('That server is not configured in this guild.')
-                self.bot.loop.create_task(asyncio.gather(*futures))
-                await ctx.message.add_reaction('✅')
+                    await ctx.send('That server is not configured in this guild.')
+            self.bot.loop.create_task(asyncio.gather(*futures))
+            await ctx.message.add_reaction('✅')
 
-            else:
-                await ctx.send('You must include a message with this command.')
         else:
-            await ctx.send(f'You are not authorized to run this command.')
+            await ctx.send('You must include a message with this command.')
     #
     # @commands.command(aliases=['servers', 'list_servers'])
     # @commands.guild_only()
