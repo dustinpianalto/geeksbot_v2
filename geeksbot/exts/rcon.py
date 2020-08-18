@@ -560,13 +560,14 @@ class Rcon(commands.Cog):
     #     else:
     #         await ctx.send(f'You are not authorized to run this command.')
 
-    async def _broadcast(self, *, message: str, server_name: str,
+    async def _broadcast(self, *, ctx: discord.ext.commands.Context, message: str, server_name: str,
                          msg: discord.Message, message_lock: asyncio.Lock):
         suc = await self.bot.aio_session.get(
-                    f'{self.bot.api_base}/rcon/{msg.guild.id}/{server_name}/broadcast/',
+                    f'{self.bot.api_base}/rcon/{ctx.guild.id}/{server_name}/broadcast/',
                     headers=self.bot.auth_header,
                     json={'message': message}
                 )
+        print(await suc.json())
         if suc.status == 400:
             resp = (await suc.json())['details']
         elif suc.status in (404, 408):
@@ -607,14 +608,14 @@ class Rcon(commands.Cog):
                 msg = await ctx.send(f'Broadcasting "{message}" to all servers.')
                 lock = asyncio.Lock()
                 for server in guild_servers:
-                    futures.append(self._broadcast(message=message, server_name=server["name"],
+                    futures.append(self._broadcast(ctx=ctx, message=message, server_name=server["name"],
                                                    msg=msg, message_lock=lock))
             else:
                 for server in guild_servers:
                     if server["name"].lower().replace(" ", "_") == server_name.lower():
                         msg = await ctx.send(f'Broadcasting "{message}" to {server["name"]}.')
                         lock = asyncio.Lock()
-                        futures.append(self._broadcast(message=message, server_name=server["name"],
+                        futures.append(self._broadcast(ctx=ctx, message=message, server_name=server["name"],
                                                        msg=msg, message_lock=lock))
                         break
                 else:
