@@ -580,7 +580,7 @@ class Rcon(commands.Cog):
         else:
             with await message_lock:
                 msg = await msg.channel.fetch_message(msg.id)
-                await msg.edit(content=f'{msg.content}\n{server_name} Failed')
+                await msg.edit(content=f'{msg.content}\n{server_name} Failed\n{resp}')
 
     @commands.group(case_insensitive=True)
     @commands.guild_only()
