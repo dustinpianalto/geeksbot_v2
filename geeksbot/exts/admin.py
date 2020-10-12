@@ -5,6 +5,7 @@ import inspect
 import sys
 import psutil
 import math
+import time
 from geeksbot.imports import utils
 
 admin_logger = logging.getLogger('admin')
@@ -60,10 +61,10 @@ class Admin(commands.Cog):
                            title=f'Pong 🏓',
                            color=discord.Colour.green()
                            )
+        time1 = time.monotonic()
         msg = await ctx.send(embed=em)
-        time1 = ctx.message.created_at
-        time = (msg.created_at - time1).total_seconds() * 1000
-        em.description = f'Response Time: **{math.ceil(time)}ms**\n' \
+        time_dif = (time.monotonic() - time1) * 1000
+        em.description = f'Response Time: **{math.ceil(time_dif)}ms**\n' \
                          f'Discord Latency: **{math.ceil(self.bot.latency*1000)}ms**'
         await msg.edit(embed=em)
 

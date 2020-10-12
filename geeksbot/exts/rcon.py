@@ -559,83 +559,75 @@ class Rcon(commands.Cog):
     #                     await ctx.send(f'{server} is not currently in the configuration for this guild.')
     #     else:
     #         await ctx.send(f'You are not authorized to run this command.')
-    #
-    # @commands.group(case_insensitive=True)
-    # async def broadcast(self, ctx):
-    #     """Run help broadcast for more info"""
-    #     pass
-    #
-    # @broadcast.command(name='all', aliases=['a'])
-    # @commands.guild_only()
-    # async def broadcast_all(self, ctx, *, message=None):
-    #     """Sends a broadcast message to all servers in the guild config.
-    #     The message will be prefixed with the Discord name of the person running the command.
-    #     Will print "Success" for each server once the broadcast is sent."""
-    #     if await checks.is_rcon_admin(self.bot, ctx):
-    #         if message is not None:
-    #
-    #             # noinspection PyShadowingNames
-    #             async def _broadcast(*, message: str, server_con: arcon.ARKServer, server_name: str,
-    #                                  msg: discord.Message, message_lock: asyncio.Lock):
-    #                 print(server_con.host, server_con.port)
-    #                 response = await server_con.broadcast(message)
-    #                 if response == 'Server received, But no response!!':
-    #                     with await message_lock:
-    #                         msg = await msg.channel.get_message(msg.id)
-    #                         await msg.edit(content=f'{msg.content}\n{server_name} Success')
-    #                 else:
-    #                     with await message_lock:
-    #                         msg = await msg.channel.get_message(msg.id)
-    #                         await msg.edit(content=f'{msg.content}\n{server_name} Failed')
-    #             futures = []
-    #             rcon_connections: dict = await self.get_rcon_server_by_name(guild_config=ctx.guild_config,
-    #                                                                         name='*')
-    #             if rcon_connections:
-    #                 message = ''.join(i for i in f'{ctx.author.display_name}: {message}' if ord(i) < 128)
-    #                 msg = await ctx.send(f'Broadcasting "{message}" to all servers.')
-    #                 lock = asyncio.Lock()
-    #                 for server_name, server_con in rcon_connections.items():
-    #                     futures.append(_broadcast(message=message, server_con=server_con, server_name=server_name,
-    #                                               msg=msg, message_lock=lock))
-    #                 self.bot.loop.create_task(asyncio.gather(*futures))
-    #                 await ctx.message.add_reaction('✅')
-    #             else:
-    #                 await ctx.send('There are no available servers for this guild.')
-    #         else:
-    #             await ctx.send('You must include a message with this command.')
-    #     else:
-    #         await ctx.send(f'You are not authorized to run this command.')
-    #
-    # @broadcast.command(name='server')
-    # @commands.guild_only()
-    # async def broadcast_server(self, ctx, server, *, message=None):
-    #     """Sends a broadcast message to the specified server that is in the guild's config.
-    #     The message will be prefixed with the Discord name of the person running the command.
-    #     If <server> has more than one word in it's name it will either need to be surrounded
-    #     by double quotes or the words separated by _"""
-    #     if await checks.is_rcon_admin(self.bot, ctx):
-    #         if server is not None:
-    #             server = server.replace('_', ' ').title()
-    #             if message is not None:
-    #                 message = ''.join(i for i in f'{ctx.author.display_name}: {message}' if ord(i) < 128)
-    #                 server_con: arcon.ARKServer = await self.get_rcon_server_by_name(
-    #                     guild_config=ctx.guild_config, name=server
-    #                 )
-    #                 if server_con:
-    #                     msg = await ctx.send(f'Broadcasting "{message}" to {server}.')
-    #                     response = await server_con.broadcast(message)
-    #                     if response == 'Server received, But no response!!':
-    #                         await msg.add_reaction(self.bot.unicode_emojis['y'])
-    #                     else:
-    #                         await msg.add_reaction(self.bot.unicode_emojis['x'])
-    #                 else:
-    #                     await ctx.send(f'{server} is not in the config for this guild')
-    #             else:
-    #                 await ctx.send('You must include a message with this command.')
-    #         else:
-    #             await ctx.send('You must include a server with this command')
-    #     else:
-    #         await ctx.send(f'You are not authorized to run this command.')
+
+    async def _broadcast(self, *, message: str, server_name: str,
+                         msg: discord.Message, message_lock: asyncio.Lock):
+        suc = await self.bot.aio_session.post(
+                    f'{self.bot.api_base}/rcon/{msg.guild.id}/{server_name}/broadcast/',
+                    headers=self.bot.auth_header,
+                    json={'message': message}
+                )
+        print(await suc.json())
+        if suc.status == 400:
+            resp = (await suc.json())['details']
+        elif suc.status in (404, 408):
+            resp = (await suc.json())['details']
+        else:
+            resp = '\n'.join(await suc.json())
+        if resp == 'Server received, But no response!!':
+            with await message_lock:
+                msg = await msg.channel.fetch_message(msg.id)
+                await msg.edit(content=f'{msg.content}\n{server_name} Success')
+        else:
+            with await message_lock:
+                msg = await msg.channel.fetch_message(msg.id)
+                await msg.edit(content=f'{msg.content}\n{server_name} Failed\n{resp}')
+
+    @commands.group(case_insensitive=True)
+    @commands.guild_only()
+    @checks.is_moderator()
+    async def broadcast(self, ctx, server_name, *, message=None):
+        """Sends a broadcast message to all servers in the guild config.
+        The message will be prefixed with the Discord name of the person running the command.
+        Will print "Success" for each server once the broadcast is sent."""
+        if message is not None:
+            resp = await self.bot.aio_session.get(
+                f'{self.bot.api_base}/rcon/{ctx.guild.id}/',
+                headers=self.bot.auth_header
+            )
+            if resp.status != 200:
+                await ctx.send('There was a problem getting the servers for this guild.')
+                return
+            guild_servers = await resp.json()
+            # noinspection PyShadowingNames
+
+            futures = []
+            error = False
+            if server_name == 'all':
+                message = ''.join(i for i in f'{ctx.author.display_name}: {message}' if ord(i) < 128)
+                msg = await ctx.send(f'Broadcasting "{message}" to all servers.')
+                lock = asyncio.Lock()
+                for server in guild_servers:
+                    futures.append(self._broadcast(message=message, server_name=server["name"],
+                                                   msg=msg, message_lock=lock))
+            else:
+                for server in guild_servers:
+                    if server["name"].lower().replace(" ", "_") == server_name.lower():
+                        message = ''.join(i for i in f'{ctx.author.display_name}: {message}' if ord(i) < 128)
+                        msg = await ctx.send(f'Broadcasting "{message}" to {server["name"]}.')
+                        lock = asyncio.Lock()
+                        futures.append(self._broadcast(message=message, server_name=server["name"],
+                                                       msg=msg, message_lock=lock))
+                        break
+                else:
+                    await ctx.send('That server is not configured in this guild.')
+                    error = True
+            if not error:
+                await asyncio.gather(*futures, loop=self.bot.loop)
+                await ctx.message.add_reaction('✅')
+
+        else:
+            await ctx.send('You must include a message with this command.')
     #
     # @commands.command(aliases=['servers', 'list_servers'])
     # @commands.guild_only()
