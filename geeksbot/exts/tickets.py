@@ -184,7 +184,7 @@ class Tickets(commands.Cog):
                                 else requests_data
                             )
                     for request in requests_list:
-                        member = await ctx.guild.fetch_member(int(request["author"])
+                        member = await ctx.guild.fetch_member(int(request["author"]))
                         title = (
                             f"<{'Request ID':^20} {'Requested By':^20}>\n"
                             f"<{request['id']:^20} {member.display_name if member else 'None':^20}>"
